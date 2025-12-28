@@ -1,0 +1,34 @@
+# Dev workflow files
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build files
+dist/
+build/
+
+# Test and debug files
+test_*.html
+test_*.py
+diagnostic.html
+*_test.html
+
+# Documentation (development only)
+*_GUIDE.md
+*_IMPLEMENTATION.md
+*_PREVIEW.md
+*_SHOWCASE.md

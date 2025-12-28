@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Icon Test</title>
+    <style>
+        body {
+            background: #1a1520;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 40px;
+        }
+        .test {
+            margin: 20px 0;
+            padding: 20px;
+            background: #2a2530;
+            border-radius: 8px;
+        }
+        .icon-box {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            background: #3a3540;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 8px;
+        }
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <h1>Weapon Icon Loading Test</h1>
+
+    <div class="test">
+        <h2>Test 1: Direct Icon1.png</h2>
+        <div class="icon-box">
+            <img src="/assets/icons/weapons/Icon1.png" onerror="this.parentElement.innerHTML='❌ FAILED'" onload="document.getElementById('test1').className='success'; document.getElementById('test1').textContent='✓ SUCCESS'">
+        </div>
+        <p id="test1">Loading...</p>
+    </div>
+
+    <div class="test">
+        <h2>Test 2: Icon10.png</h2>
+        <div class="icon-box">
+            <img src="/assets/icons/weapons/Icon10.png" onerror="this.parentElement.innerHTML='❌ FAILED'" onload="document.getElementById('test2').className='success'; document.getElementById('test2').textContent='✓ SUCCESS'">
+        </div>
+        <p id="test2">Loading...</p>
+    </div>
+
+    <div class="test">
+        <h2>Test 3: Icon24.png (High number)</h2>
+        <div class="icon-box">
+            <img src="/assets/icons/weapons/Icon24.png" onerror="this.parentElement.innerHTML='❌ FAILED'" onload="document.getElementById('test3').className='success'; document.getElementById('test3').textContent='✓ SUCCESS'">
+        </div>
+        <p id="test3">Loading...</p>
+    </div>
+
+    <div class="test">
+        <h2>Browser Console Output:</h2>
+        <p>Open DevTools (F12) and check:</p>
+        <ul>
+            <li>Network tab - Are the PNG files being requested?</li>
+            <li>Console tab - Any errors?</li>
+            <li>Look for 404 errors or CORS issues</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('=== Icon Test Started ===');
+        console.log('Current URL:', window.location.href);
+        console.log('Testing icon paths:');
+        console.log('  - /assets/icons/weapons/Icon1.png');
+        console.log('  - /assets/icons/weapons/Icon10.png');
+        console.log('  - /assets/icons/weapons/Icon24.png');
+
+        // Test if we can fetch the icon
+        fetch('/assets/icons/weapons/Icon1.png')
+            .then(response => {
+                console.log('Fetch test result:', response.status, response.statusText);
+                if (response.ok) {
+                    console.log('✓ Icon1.png is accessible via fetch');
+                } else {
+                    console.error('✗ Icon1.png returned error:', response.status);
+                }
+            })
+            .catch(error => {
+                console.error('✗ Fetch failed:', error);
+            });
+    </script>
+</body>
+</html>

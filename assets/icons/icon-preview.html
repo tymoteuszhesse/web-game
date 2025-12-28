@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Preview - Dark Fantasy RPG</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e1a;
+            color: #ffffff;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #a0a8b8;
+            margin-bottom: 30px;
+        }
+
+        .instructions {
+            background: #1a1f2e;
+            border: 1px solid #2a3040;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .instructions h2 {
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .icon-card {
+            background: #1a1f2e;
+            border: 1px solid #2a3040;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .icon-card:hover {
+            border-color: #ffd700;
+            transform: translateY(-2px);
+        }
+
+        .icon-display {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .icon-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .icon-name {
+            font-size: 0.9em;
+            color: #ffd700;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .icon-filename {
+            font-size: 0.75em;
+            color: #a0a8b8;
+            font-family: monospace;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        .status.found {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .status.missing {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .category-header {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+            padding: 10px;
+            background: linear-gradient(90deg, #2a3040, transparent);
+            border-left: 4px solid #ffd700;
+            font-size: 1.3em;
+            color: #ffd700;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏰 Dark Fantasy Icon Preview</h1>
+    <p class="subtitle">Preview your downloaded icons before integrating them</p>
+
+    <div class="instructions">
+        <h2>How to Use This Preview:</h2>
+        <ol>
+            <li>Download icons from <a href="https://thenounproject.com/browse/icons/term/dark-fantasy/" target="_blank" style="color: #ffd700;">Noun Project</a></li>
+            <li>Save SVG files to this folder with the exact filenames shown below</li>
+            <li>Refresh this page to see which icons loaded successfully</li>
+            <li>Once satisfied, change <code>iconType: 'svg'</code> in <code>src/data/themeIcons.js</code></li>
+        </ol>
+    </div>
+
+    <div class="icon-grid" id="iconGrid"></div>
+
+    <script>
+        const icons = [
+            // Core Resources
+            { category: 'Core Resources (Priority: HIGH)', items: [
+                { name: 'Stamina', file: 'stamina.svg', emoji: '⚡' },
+                { name: 'Gold', file: 'gold.svg', emoji: '🪙' },
+                { name: 'Gems', file: 'gems.svg', emoji: '💎' },
+                { name: 'Experience', file: 'exp.svg', emoji: '✨' },
+                { name: 'Level', file: 'level.svg', emoji: '⭐' }
+            ]},
+
+            // Combat
+            { category: 'Combat & Stats (Priority: HIGH)', items: [
+                { name: 'Attack', file: 'attack.svg', emoji: '⚔️' },
+                { name: 'Defense', file: 'defense.svg', emoji: '🛡️' },
+                { name: 'Health', file: 'hp.svg', emoji: '❤️' },
+                { name: 'Damage', file: 'damage.svg', emoji: '💥' },
+                { name: 'Critical', file: 'critical.svg', emoji: '💫' }
+            ]},
+
+            // Activities
+            { category: 'Activities (Priority: HIGH)', items: [
+                { name: 'Gates', file: 'gates.svg', emoji: '🏰' },
+                { name: 'Battle', file: 'battle.svg', emoji: '⚔️' },
+                { name: 'PvP', file: 'pvp.svg', emoji: '🗡️' },
+                { name: 'Events', file: 'events.svg', emoji: '🔮' },
+                { name: 'Quest', file: 'quest.svg', emoji: '📜' }
+            ]},
+
+            // Equipment
+            { category: 'Equipment (Priority: HIGH)', items: [
+                { name: 'Weapon', file: 'weapon.svg', emoji: '⚔️' },
+                { name: 'Helmet', file: 'helmet.svg', emoji: '🪖' },
+                { name: 'Armor', file: 'armor.svg', emoji: '🛡️' },
+                { name: 'Boots', file: 'boots.svg', emoji: '👢' },
+                { name: 'Gloves', file: 'gloves.svg', emoji: '🧤' },
+                { name: 'Ring', file: 'ring.svg', emoji: '💍' },
+                { name: 'Amulet', file: 'amulet.svg', emoji: '📿' }
+            ]},
+
+            // Pets
+            { category: 'Pets & Companions (Priority: MEDIUM)', items: [
+                { name: 'Pets', file: 'pets.svg', emoji: '🐾' },
+                { name: 'Egg', file: 'egg.svg', emoji: '🥚' },
+                { name: 'Food', file: 'food.svg', emoji: '🍖' },
+                { name: 'Shadow Dragon', file: 'pet-dragon.svg', emoji: '🐉' },
+                { name: 'Blood Wyvern', file: 'pet-wyvern.svg', emoji: '🦇' },
+                { name: 'Direwolf', file: 'pet-wolf.svg', emoji: '🐺' },
+                { name: 'Abyssal Bear', file: 'pet-bear.svg', emoji: '🐻' },
+                { name: 'Nightmare Tiger', file: 'pet-tiger.svg', emoji: '🐯' },
+                { name: 'Infernal Lion', file: 'pet-lion.svg', emoji: '🦁' },
+                { name: 'Spirit Fox', file: 'pet-fox.svg', emoji: '🦊' },
+                { name: 'Void Spider', file: 'pet-spider.svg', emoji: '🕷️' }
+            ]},
+
+            // Merchant
+            { category: 'Merchant & Items (Priority: MEDIUM)', items: [
+                { name: 'Merchant', file: 'merchant.svg', emoji: '🧙' },
+                { name: 'Shop', file: 'shop.svg', emoji: '🏪' },
+                { name: 'Inventory', file: 'inventory.svg', emoji: '🎒' },
+                { name: 'Equipment', file: 'equipment.svg', emoji: '⚔️' },
+                { name: 'Chest', file: 'chest.svg', emoji: '💎' }
+            ]},
+
+            // Loot
+            { category: 'Loot & Rewards (Priority: MEDIUM)', items: [
+                { name: 'Loot', file: 'loot.svg', emoji: '🎁' },
+                { name: 'Treasure', file: 'treasure.svg', emoji: '💰' },
+                { name: 'Potion', file: 'potion.svg', emoji: '🧪' },
+                { name: 'Scroll', file: 'scroll.svg', emoji: '📜' },
+                { name: 'Book', file: 'book.svg', emoji: '📕' }
+            ]}
+        ];
+
+        async function checkIcon(filename) {
+            try {
+                const response = await fetch(filename);
+                return response.ok;
+            } catch {
+                return false;
+            }
+        }
+
+        async function renderIcons() {
+            const grid = document.getElementById('iconGrid');
+
+            for (const category of icons) {
+                // Add category header
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.textContent = category.category;
+                grid.appendChild(header);
+
+                // Add icons
+                for (const icon of category.items) {
+                    const card = document.createElement('div');
+                    card.className = 'icon-card';
+
+                    const exists = await checkIcon(icon.file);
+
+                    card.innerHTML = `
+                        <div class="icon-display">
+                            ${exists ? `<img src="${icon.file}" alt="${icon.name}">` : icon.emoji}
+                        </div>
+                        <div class="icon-name">${icon.name}</div>
+                        <div class="icon-filename">${icon.file}</div>
+                        <div class="status ${exists ? 'found' : 'missing'}">
+                            ${exists ? '✓ Found' : '✗ Missing'}
+                        </div>
+                    `;
+
+                    grid.appendChild(card);
+                }
+            }
+        }
+
+        renderIcons();
+    </script>
+</body>
+</html>

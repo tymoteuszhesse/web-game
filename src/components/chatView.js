@@ -434,17 +434,10 @@ function initializeChat(messagesArea, messageInput, inputForm) {
 
     // Add message to UI
     function addMessage(message) {
-        console.log('[Chat] addMessage called with:', message);
-        console.log('[Chat] messagesArea exists:', !!messagesArea);
-        console.log('[Chat] messagesArea ID:', messagesArea?.id);
-        console.log('[Chat] Current messages count:', messages.length);
-
-        // CRITICAL FIX: Use message ID for duplicate detection instead of text comparison
-        // Text comparison can prevent legitimate duplicate messages
+        // Use message ID for duplicate detection instead of text comparison
         if (message.id) {
             const isDuplicate = messages.some(m => m.id === message.id);
             if (isDuplicate) {
-                console.log('[Chat] Skipping duplicate message ID:', message.id);
                 return;
             }
         } else {
@@ -455,22 +448,13 @@ function initializeChat(messagesArea, messageInput, inputForm) {
                 Math.abs(new Date(m.timestamp) - new Date(message.timestamp)) < 500
             );
             if (isDuplicate) {
-                console.log('[Chat] Skipping duplicate message (no ID)');
                 return;
             }
         }
 
         messages.push(message);
-        console.log('[Chat] Total messages in array after push:', messages.length);
-
         const messageEl = createMessageElement(message);
-        console.log('[Chat] Created message element:', messageEl);
-        console.log('[Chat] Element textContent:', messageEl.textContent);
-
         messagesArea.appendChild(messageEl);
-        console.log('[Chat] Message appended to DOM');
-        console.log('[Chat] Total children in messagesArea:', messagesArea.children.length);
-        console.log('[Chat] messagesArea visible:', messagesArea.offsetParent !== null);
 
         // Scroll to bottom with smooth animation
         setTimeout(() => {
@@ -478,7 +462,6 @@ function initializeChat(messagesArea, messageInput, inputForm) {
                 top: messagesArea.scrollHeight,
                 behavior: 'smooth'
             });
-            console.log('[Chat] Scrolled to bottom. ScrollHeight:', messagesArea.scrollHeight);
         }, 50);
     }
 

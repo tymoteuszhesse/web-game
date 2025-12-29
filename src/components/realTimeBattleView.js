@@ -750,18 +750,36 @@ function createEnemyCard(enemy, battle) {
                 staminaValueEl.textContent = currentStamina;
             }
 
+            // Check if currently selected attack is still affordable
+            const currentConfig = attackTypes.find(a => a.type === selectedAttackType);
+            const canAffordCurrent = currentStamina >= currentConfig.stamina;
+
+            // If can't afford current selection, auto-select the best affordable option
+            if (!canAffordCurrent) {
+                // Find the most powerful affordable attack
+                const affordableAttacks = attackTypes.filter(a => currentStamina >= a.stamina);
+                if (affordableAttacks.length > 0) {
+                    // Sort by stamina cost (descending) to get the most powerful
+                    affordableAttacks.sort((a, b) => b.stamina - a.stamina);
+                    selectedAttackType = affordableAttacks[0].type;
+                }
+            }
+
             // Update attack type button states
             buttonsGrid.querySelectorAll('button').forEach(btn => {
                 const type = btn.dataset.attackType;
                 const config = attackTypes.find(a => a.type === type);
                 const canAfford = currentStamina >= config.stamina;
+                const isSelected = type === selectedAttackType;
 
                 btn.disabled = !canAfford;
-                btn.style.opacity = canAfford ? (type === selectedAttackType ? '1' : '0.6') : '0.4';
+                btn.style.opacity = canAfford ? (isSelected ? '1' : '0.6') : '0.4';
                 btn.style.cursor = canAfford ? 'pointer' : 'not-allowed';
                 btn.style.background = canAfford ? config.color + '22' : '#2a2a2a';
                 btn.style.color = canAfford ? '#fff' : '#777';
                 btn.style.borderColor = canAfford ? config.color : '#555';
+                btn.style.borderWidth = isSelected ? '3px' : '2px';
+                btn.style.transform = isSelected ? 'scale(1.05)' : 'scale(1)';
             });
         };
 

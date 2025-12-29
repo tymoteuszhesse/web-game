@@ -17,8 +17,7 @@ class PvPBattleConnection {
     connect() {
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsHost = window.location.hostname === '' ? 'localhost' : window.location.hostname;
-        const wsPort = 8001;
-        const wsUrl = `${wsProtocol}//${wsHost}:${wsPort}/api/ws/pvp-battle/${this.battleId}?token=${this.token}`;
+        const wsUrl = `${wsProtocol}//${wsHost}/ws/pvp-battle/${this.battleId}?token=${this.token}`;
 
         console.log('[PVP Battle WS] Connecting to:', wsUrl);
 

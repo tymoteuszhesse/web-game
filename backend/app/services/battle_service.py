@@ -183,7 +183,7 @@ class BattleService:
             wave_number=wave_number,
             max_players=max_players,
             required_level=required_level,
-            stamina_cost=10 * wave_number,
+            stamina_cost=0,  # Free to join - stamina only costs for attacking
             status=BattleStatus.WAITING,
             gold_reward=int(base_gold * diff_mult["gold"]),
             exp_reward=int(base_xp * diff_mult["xp"]),

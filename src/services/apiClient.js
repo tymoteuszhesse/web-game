@@ -347,6 +347,15 @@ class APIClient {
     }
 
     /**
+     * Use a potion from inventory
+     */
+    async usePotion(itemId) {
+        return await this.request(`/api/inventory/use-potion/${itemId}`, {
+            method: 'POST'
+        });
+    }
+
+    /**
      * Get starter items (one-time only)
      */
     async getStarterItems() {

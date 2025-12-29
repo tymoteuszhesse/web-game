@@ -168,6 +168,27 @@ async function createRealTimeBattleView(battleId) {
         layout.appendChild(rightCol);
         container.appendChild(layout);
 
+        // Set up stamina regeneration listener
+        // This will update all enemy card attack buttons when stamina regenerates
+        const staminaUpdateInterval = setInterval(() => {
+            const currentPlayer = PlayerData.get();
+            const currentStamina = currentPlayer.stamina;
+
+            // Update all enemy cards with attack buttons
+            document.querySelectorAll('[data-enemy-id]').forEach(card => {
+                if (card.updateAttackButtons && typeof card.updateAttackButtons === 'function') {
+                    card.updateAttackButtons(currentStamina);
+                }
+            });
+        }, 1000); // Check every second
+
+        // Clean up interval on navigation
+        const originalCleanup = window.currentBattleCleanup;
+        window.currentBattleCleanup = () => {
+            clearInterval(staminaUpdateInterval);
+            if (originalCleanup) originalCleanup();
+        };
+
         // Initialize WebSocket connection
         initializeBattleWebSocket(battle);
 
@@ -721,6 +742,32 @@ function createEnemyCard(enemy, battle) {
 
         attackContainer.appendChild(buttonsGrid);
 
+        // Function to update button states based on current stamina
+        const updateAttackButtonStates = (currentStamina) => {
+            // Update stamina display
+            const staminaValueEl = staminaDisplay.querySelector('.stamina-value');
+            if (staminaValueEl) {
+                staminaValueEl.textContent = currentStamina;
+            }
+
+            // Update attack type button states
+            buttonsGrid.querySelectorAll('button').forEach(btn => {
+                const type = btn.dataset.attackType;
+                const config = attackTypes.find(a => a.type === type);
+                const canAfford = currentStamina >= config.stamina;
+
+                btn.disabled = !canAfford;
+                btn.style.opacity = canAfford ? (type === selectedAttackType ? '1' : '0.6') : '0.4';
+                btn.style.cursor = canAfford ? 'pointer' : 'not-allowed';
+                btn.style.background = canAfford ? config.color + '22' : '#2a2a2a';
+                btn.style.color = canAfford ? '#fff' : '#777';
+                btn.style.borderColor = canAfford ? config.color : '#555';
+            });
+        };
+
+        // Store update function for this enemy card so we can call it on stamina regeneration
+        card.updateAttackButtons = updateAttackButtonStates;
+
         // Execute attack button
         const attackBtn = createButton({
             text: '⚔️ Execute Attack',
@@ -745,25 +792,8 @@ function createEnemyCard(enemy, battle) {
                         // Update header display
                         PlayerData.updateUI();
 
-                        // Update local battle stamina display
-                        const staminaValueEl = staminaDisplay.querySelector('.stamina-value');
-                        if (staminaValueEl) {
-                            staminaValueEl.textContent = result.stamina_remaining;
-                        }
-
-                        // Update button availability based on new stamina
-                        buttonsGrid.querySelectorAll('button').forEach(btn => {
-                            const type = btn.dataset.attackType;
-                            const config = attackTypes.find(a => a.type === type);
-                            const canAfford = result.stamina_remaining >= config.stamina;
-
-                            btn.disabled = !canAfford;
-                            btn.style.opacity = canAfford ? (type === selectedAttackType ? '1' : '0.6') : '0.4';
-                            btn.style.cursor = canAfford ? 'pointer' : 'not-allowed';
-                            btn.style.background = canAfford ? config.color + '22' : '#2a2a2a';
-                            btn.style.color = canAfford ? '#fff' : '#777';
-                            btn.style.borderColor = canAfford ? config.color : '#555';
-                        });
+                        // Update local battle UI (stamina display and attack buttons)
+                        updateAttackButtonStates(result.stamina_remaining);
                     }
 
                     // Re-enable button immediately after successful API call
@@ -1620,6 +1650,11 @@ if (!window.battleWSCleanupRegistered) {
             window.currentBattleWS.removeAllHandlers();
             window.currentBattleWS.disconnect();
             window.currentBattleWS = null;
+        }
+        // Clean up stamina update interval
+        if (window.currentBattleCleanup) {
+            window.currentBattleCleanup();
+            window.currentBattleCleanup = null;
         }
     });
 }

@@ -499,7 +499,9 @@ function initializeChat(messagesArea, messageInput, inputForm) {
                     console.log('[Chat] Updating online count:', data.count);
                     updateOnlineCount(data.count);
                 } else if (data.type === 'system') {
-                    console.log('[Chat] System message:', data.message);
+                    // System messages can have either 'text' (from DB) or 'message' (live)
+                    const msgText = data.text || data.message;
+                    console.log('[Chat] System message:', msgText);
                     addMessage(data);
                 } else if (data.type === 'message') {
                     console.log('[Chat] User message from:', data.username, '- text:', data.text);

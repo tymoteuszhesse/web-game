@@ -94,8 +94,8 @@ const InventoryData = {
 
             this._cache = inventory;
 
-            // Also update game state for other systems
-            gameState.set('inventory', inventory);
+            // Update potion count in header
+            this._updatePotionCount();
 
             return inventory;
 
@@ -103,6 +103,18 @@ const InventoryData = {
             return this._cache;
         } finally {
             this._loading = false;
+        }
+    },
+
+    /**
+     * Update potion count display in header
+     */
+    _updatePotionCount() {
+        const potionCountEl = document.getElementById('potion-count');
+        if (potionCountEl) {
+            const potions = this._cache.items.filter(item => item.item_type === 'consumable');
+            const totalCount = potions.reduce((sum, potion) => sum + (potion.quantity || 0), 0);
+            potionCountEl.textContent = totalCount;
         }
     },
 

@@ -16,11 +16,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize auth button
     initializeAuthButton();
 
-    // Initialize potions quick-access button
-    const potionsButton = document.getElementById('potions-button');
-    if (potionsButton) {
-        potionsButton.addEventListener('click', () => {
+    // Initialize potions resource button (replaces gems)
+    const potionsResourceButton = document.getElementById('potions-resource-button');
+    if (potionsResourceButton) {
+        potionsResourceButton.addEventListener('click', () => {
             router.navigate('potions');
+        });
+
+        // Add hover effect
+        potionsResourceButton.addEventListener('mouseenter', () => {
+            potionsResourceButton.style.transform = 'scale(1.05)';
+            potionsResourceButton.style.transition = 'transform 0.2s';
+        });
+        potionsResourceButton.addEventListener('mouseleave', () => {
+            potionsResourceButton.style.transform = 'scale(1)';
         });
     }
 

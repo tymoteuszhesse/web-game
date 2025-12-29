@@ -184,15 +184,8 @@ function createPotionCard(potion) {
                 const result = await apiClient.usePotion(potion.id);
                 NotificationSystem.show(result.message, 'success');
 
-                // Update player data
-                const player = gameState.get('player');
-                if (result.stamina !== undefined) {
-                    player.stamina = result.stamina;
-                }
-                if (result.stamina_max !== undefined) {
-                    player.stamina_max = result.stamina_max;
-                }
-                gameState.set('player', player);
+                // Refresh player data from API
+                await PlayerData.syncFromAPI();
                 PlayerData.updateUI();
 
                 // Refresh the view to update quantity

@@ -34,6 +34,9 @@ class ActiveBuffsDisplay {
             const player = PlayerData.get();
             const buffs = player.active_buffs || [];
 
+            console.log('[ActiveBuffs] Player data:', player);
+            console.log('[ActiveBuffs] Raw buffs:', buffs);
+
             this.buffs = buffs.map(buff => ({
                 id: buff.id,
                 type: buff.buff_type,
@@ -41,6 +44,8 @@ class ActiveBuffsDisplay {
                 expiresAt: new Date(buff.expires_at),
                 source: buff.source
             }));
+
+            console.log('[ActiveBuffs] Processed buffs:', this.buffs);
 
             this.render();
         } catch (error) {
@@ -52,7 +57,10 @@ class ActiveBuffsDisplay {
      * Render the buffs display
      */
     render() {
-        if (!this.container) return;
+        if (!this.container) {
+            console.warn('[ActiveBuffs] No container found for rendering');
+            return;
+        }
 
         // Clear existing content
         this.container.innerHTML = '';
@@ -61,10 +69,15 @@ class ActiveBuffsDisplay {
         const now = new Date();
         const activeBuffs = this.buffs.filter(buff => buff.expiresAt > now);
 
+        console.log('[ActiveBuffs] Active buffs after filtering:', activeBuffs);
+
         if (activeBuffs.length === 0) {
+            console.log('[ActiveBuffs] No active buffs to display');
             // Container will hide automatically with :not(:empty) CSS
             return;
         }
+
+        console.log('[ActiveBuffs] Rendering', activeBuffs.length, 'buffs');
 
         // Render each buff
         activeBuffs.forEach(buff => {

@@ -72,6 +72,7 @@ const InventoryData = {
                         id: item.id,
                         name: item.name,
                         type: item.item_type,
+                        item_type: item.item_type,  // Keep original for filtering
                         rarity: item.rarity,
                         level: item.level_requirement || 1,
                         stats: {
@@ -80,7 +81,8 @@ const InventoryData = {
                             hp: item.hp_bonus || 0
                         },
                         quantity: item.quantity || 1,
-                        icon: item.icon || null  // Add icon property from API
+                        icon: item.icon || null,  // Add icon property from API
+                        properties: item.properties || null  // Add properties for potions
                     };
 
                     // Enrich with shop data if icon is missing

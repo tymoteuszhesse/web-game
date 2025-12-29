@@ -23,13 +23,23 @@ class BattlePoolManager:
         """
         Ensure there are always enough battles available
         Creates new battles if the pool is below minimum
+        Maintains exactly 1 Easy, 1 Medium, and 1 Hard/Legendary battle
         """
         try:
-            # Count available standard battles
-            standard_count = db.query(Battle).filter(
+            # Required difficulty distribution for standard battles
+            required_difficulties = [
+                DifficultyLevel.EASY,
+                DifficultyLevel.MEDIUM,
+                random.choice([DifficultyLevel.HARD, DifficultyLevel.NIGHTMARE])
+            ]
+
+            # Get existing battles by difficulty
+            existing_battles = db.query(Battle).filter(
                 Battle.battle_type == BattleType.STANDARD,
                 Battle.status == BattleStatus.WAITING
-            ).count()
+            ).all()
+
+            existing_difficulties = [b.difficulty for b in existing_battles]
 
             # Count available boss raids
             boss_count = db.query(Battle).filter(
@@ -37,27 +47,25 @@ class BattlePoolManager:
                 Battle.status == BattleStatus.WAITING
             ).count()
 
-            logger.info("battle_pool_check",
-                       standard_battles=standard_count,
-                       boss_raids=boss_count,
-                       standard_needed=max(0, STANDARD_BATTLE_POOL_SIZE - standard_count),
-                       boss_needed=max(0, BOSS_RAID_POOL_SIZE - boss_count))
-
-            # Create standard battles if needed
             battles_created = 0
-            for _ in range(STANDARD_BATTLE_POOL_SIZE - standard_count):
-                difficulty = random.choice(list(DifficultyLevel))
-                battle = BattleService.create_battle(
-                    db=db,
-                    difficulty=difficulty,
-                    wave_number=random.randint(1, 5),
-                    required_level=1,
-                    max_players=10
-                )
-                battles_created += 1
-                logger.info("standard_battle_created",
-                           battle_id=battle.id,
-                           difficulty=difficulty.value)
+
+            # Create missing difficulty battles
+            for difficulty in required_difficulties:
+                if difficulty not in existing_difficulties:
+                    battle = BattleService.create_battle(
+                        db=db,
+                        difficulty=difficulty,
+                        wave_number=random.randint(1, 5),
+                        required_level=1,
+                        max_players=10
+                    )
+                    battles_created += 1
+                    logger.info("standard_battle_created",
+                               battle_id=battle.id,
+                               difficulty=difficulty.value)
+                else:
+                    # Remove from list so we don't create duplicates
+                    existing_difficulties.remove(difficulty)
 
             # Create boss raids if needed
             for _ in range(BOSS_RAID_POOL_SIZE - boss_count):
@@ -88,9 +96,20 @@ class BattlePoolManager:
             if battles_created > 0:
                 logger.info("battle_pool_replenished", battles_created=battles_created)
 
+            # Count final state
+            final_standard_count = db.query(Battle).filter(
+                Battle.battle_type == BattleType.STANDARD,
+                Battle.status == BattleStatus.WAITING
+            ).count()
+
+            final_boss_count = db.query(Battle).filter(
+                Battle.battle_type == BattleType.BOSS_RAID,
+                Battle.status == BattleStatus.WAITING
+            ).count()
+
             return {
-                "standard_battles": standard_count + (STANDARD_BATTLE_POOL_SIZE - standard_count),
-                "boss_raids": boss_count + (BOSS_RAID_POOL_SIZE - boss_count),
+                "standard_battles": final_standard_count,
+                "boss_raids": final_boss_count,
                 "created": battles_created
             }
 

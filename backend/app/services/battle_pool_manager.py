@@ -30,7 +30,7 @@ class BattlePoolManager:
             required_difficulties = [
                 DifficultyLevel.EASY,
                 DifficultyLevel.MEDIUM,
-                random.choice([DifficultyLevel.HARD, DifficultyLevel.NIGHTMARE])
+                random.choice([DifficultyLevel.HARD, DifficultyLevel.LEGENDARY])
             ]
 
             # Get existing battles by difficulty
@@ -77,7 +77,7 @@ class BattlePoolManager:
                     "Shadow Empress"
                 ]
                 boss_name = random.choice(boss_names)
-                difficulty = random.choice([DifficultyLevel.HARD, DifficultyLevel.NIGHTMARE])
+                difficulty = random.choice([DifficultyLevel.EPIC, DifficultyLevel.LEGENDARY])
 
                 battle = BattleService.create_boss_raid(
                     db=db,

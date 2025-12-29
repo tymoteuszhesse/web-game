@@ -32,7 +32,7 @@ class BattleWebSocket {
             return;
         }
 
-        const wsURL = `ws://localhost:8001/ws/battle/${this.battleId}?token=${token}`;
+        const wsURL = `ws://217.182.65.174/ws/battle/${this.battleId}?token=${token}`;
         console.log(`[BattleWS] Connecting to battle ${this.battleId}...`);
 
         this.isManualDisconnect = false;

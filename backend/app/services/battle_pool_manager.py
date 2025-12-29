@@ -12,7 +12,7 @@ logger = structlog.get_logger()
 
 # Configuration
 STANDARD_BATTLE_POOL_SIZE = 3
-BOSS_RAID_POOL_SIZE = 0  # Boss raids disabled
+BOSS_RAID_POOL_SIZE = 1  # Always maintain 1 boss raid
 
 
 class BattlePoolManager:

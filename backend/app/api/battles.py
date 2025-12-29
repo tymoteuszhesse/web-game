@@ -7,6 +7,7 @@ from app.models.battle import Battle, DifficultyLevel, BattleParticipant, Battle
 from app.models.battle_log import BattleLog
 from app.core.security import get_current_active_user
 from app.services.battle_service import BattleService
+from app.services.battle_pool_manager import BattlePoolManager
 from app.websocket.battle_ws import get_battle_manager
 from app.schemas.battle import (
     BattleInfo,
@@ -138,9 +139,7 @@ async def get_available_battles(
     """
     Get list of available battles for the current player
 
-    Only shows battles that:
-    - Are waiting or in progress
-    - Meet player's level requirement
+    Auto-generates battles to maintain pool of 3 standard battles
     """
     player = db.query(Player).filter(Player.user_id == current_user.id).first()
     if not player:
@@ -148,6 +147,9 @@ async def get_available_battles(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Player not found"
         )
+
+    # Ensure battle pool is maintained
+    BattlePoolManager.ensure_battle_pool(db)
 
     battles = BattleService.get_available_battles(db, player, battle_type=BattleType.STANDARD)
 
@@ -186,8 +188,7 @@ async def get_available_boss_raids(
     """
     Get list of available boss raids only
 
-    Returns ALL boss raids (regardless of player level) so frontend can show them
-    as locked if player doesn't meet level requirement
+    Auto-generates boss raids to maintain pool of 1 boss raid
     """
     player = db.query(Player).filter(Player.user_id == current_user.id).first()
     if not player:
@@ -195,6 +196,9 @@ async def get_available_boss_raids(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Player not found"
         )
+
+    # Ensure battle pool is maintained
+    BattlePoolManager.ensure_battle_pool(db)
 
     # Get all boss raids without level filtering (frontend will handle level requirements)
     battles = db.query(Battle).filter(

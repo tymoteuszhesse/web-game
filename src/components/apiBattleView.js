@@ -114,75 +114,10 @@ async function createApiBattleView() {
         const actionBar = document.createElement('div');
         actionBar.style.cssText = 'display: flex; gap: 12px; margin-bottom: 20px; align-items: center;';
 
-        // Create Battle button
-        const createBtn = createButton({
-            text: '➕ Create Battle',
-            variant: 'success',
-            onClick: async () => {
-                createBtn.disabled = true;
-                createBtn.textContent = 'Creating...';
-
-                try {
-                    const battle = await apiClient.createBattle('medium', 1, 1, 10);
-                    NotificationSystem.show('Battle created! Refresh to see it.', 'success');
-
-                    // Refresh the view
-                    setTimeout(() => {
-                        router.navigate('battles');
-                    }, 1000);
-                } catch (error) {
-                    NotificationSystem.show(error.message, 'error');
-                    createBtn.disabled = false;
-                    createBtn.textContent = '➕ Create Battle';
-                }
-            }
-        });
-        actionBar.appendChild(createBtn);
-
-        // Create Boss Raid button
-        const createBossBtn = createButton({
-            text: '👹 Create Boss Raid',
-            variant: 'legendary',
-            onClick: async () => {
-                createBossBtn.disabled = true;
-                createBossBtn.textContent = 'Creating Boss...';
-
-                try {
-                    // Create boss raid via API
-                    const response = await fetch(`${apiClient.baseURL}/api/battles/boss-raids/create?difficulty=medium`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${apiClient.getToken()}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`Failed to create boss raid: ${response.status} ${errorText}`);
-                    }
-
-                    await response.json();
-
-                    NotificationSystem.show('Boss Raid created! Refresh to see it.', 'success');
-
-                    // Refresh the view
-                    setTimeout(() => {
-                        router.navigate('battles');
-                    }, 1000);
-                } catch (error) {
-                    NotificationSystem.show(error.message, 'error');
-                    createBossBtn.disabled = false;
-                    createBossBtn.textContent = '👹 Create Boss Raid';
-                }
-            }
-        });
-        actionBar.appendChild(createBossBtn);
-
         // Refresh button
         const refreshBtn = createButton({
             text: '🔄 Refresh',
-            variant: 'secondary',
+            variant: 'primary',
             onClick: () => {
                 router.navigate('battles');
             }

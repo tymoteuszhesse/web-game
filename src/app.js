@@ -42,7 +42,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             // Fetch player info first
             const playerData = await apiClient.getPlayerInfo();
+            console.log('[App] Initial player data:', playerData);
+            console.log('[App] Active buffs from API:', playerData.active_buffs);
             gameState.set('player', playerData);
+
+            // Update active buffs display if available
+            if (window.ActiveBuffsDisplay) {
+                await window.ActiveBuffsDisplay.updateBuffs();
+            }
 
             // Then load other data in parallel
             await Promise.all([

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 from app.db.database import get_db
 from app.models.user import User
@@ -27,7 +27,7 @@ async def get_player_profile(
     db: Session = Depends(get_db)
 ):
     """Get current player's profile"""
-    player = db.query(Player).filter(Player.user_id == current_user.id).first()
+    player = db.query(Player).options(joinedload(Player.active_buffs)).filter(Player.user_id == current_user.id).first()
     if not player:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

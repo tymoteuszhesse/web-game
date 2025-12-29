@@ -14,17 +14,12 @@ class ActiveBuffsDisplay {
      * Initialize the buffs display
      */
     init() {
-        // Create container if it doesn't exist
-        if (!this.container) {
-            this.container = document.createElement('div');
-            this.container.id = 'active-buffs-container';
-            this.container.className = 'active-buffs-container';
+        // Get the existing container from HTML
+        this.container = document.getElementById('active-buffs-container');
 
-            // Insert after the server time in the header
-            const header = document.querySelector('.resources-bar');
-            if (header) {
-                header.appendChild(this.container);
-            }
+        if (!this.container) {
+            console.error('Active buffs container not found in HTML');
+            return;
         }
 
         // Start update loop
@@ -67,11 +62,9 @@ class ActiveBuffsDisplay {
         const activeBuffs = this.buffs.filter(buff => buff.expiresAt > now);
 
         if (activeBuffs.length === 0) {
-            this.container.style.display = 'none';
+            // Container will hide automatically with :not(:empty) CSS
             return;
         }
-
-        this.container.style.display = 'flex';
 
         // Render each buff
         activeBuffs.forEach(buff => {

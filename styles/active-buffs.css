@@ -4,11 +4,15 @@
  */
 
 .active-buffs-container {
-    display: flex;
+    display: none; /* Hidden by default, shown when buffs are active */
     gap: 16px;
     align-items: center;
-    margin-left: auto;
-    padding: 0 20px;
+    margin-left: 20px;
+    flex-wrap: wrap;
+}
+
+.active-buffs-container:not(:empty) {
+    display: flex;
 }
 
 .buff-card {

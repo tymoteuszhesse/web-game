@@ -324,7 +324,8 @@ function initializeChat(messagesArea, messageInput, inputForm) {
                 color: #5a4a3a;
                 animation: messageAppear 0.3s ease-out;
             `;
-            messageEl.textContent = message.message;
+            // CRITICAL FIX: Support both 'text' and 'message' properties for system messages
+            messageEl.textContent = message.text || message.message || 'System message';
             return messageEl;
         }
 
@@ -433,14 +434,26 @@ function initializeChat(messagesArea, messageInput, inputForm) {
 
     // Add message to UI
     function addMessage(message) {
-        // Skip adding message if it's a duplicate from our own send
-        const isDuplicate = messages.some(m =>
-            m.text === message.text &&
-            m.userId === message.userId &&
-            Math.abs(new Date(m.timestamp) - new Date(message.timestamp)) < 1000
-        );
-
-        if (isDuplicate) return;
+        // CRITICAL FIX: Use message ID for duplicate detection instead of text comparison
+        // Text comparison can prevent legitimate duplicate messages
+        if (message.id) {
+            const isDuplicate = messages.some(m => m.id === message.id);
+            if (isDuplicate) {
+                console.log('[Chat] Skipping duplicate message ID:', message.id);
+                return;
+            }
+        } else {
+            // Fallback for messages without ID (backwards compatibility)
+            const isDuplicate = messages.some(m =>
+                m.text === message.text &&
+                m.userId === message.userId &&
+                Math.abs(new Date(m.timestamp) - new Date(message.timestamp)) < 500
+            );
+            if (isDuplicate) {
+                console.log('[Chat] Skipping duplicate message (no ID)');
+                return;
+            }
+        }
 
         messages.push(message);
         const messageEl = createMessageElement(message);
@@ -479,14 +492,20 @@ function initializeChat(messagesArea, messageInput, inputForm) {
 
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
+                console.log('[Chat] Received WebSocket message:', data);
 
                 // Handle different message types
                 if (data.type === 'online_count') {
+                    console.log('[Chat] Updating online count:', data.count);
                     updateOnlineCount(data.count);
                 } else if (data.type === 'system') {
+                    console.log('[Chat] System message:', data.message);
                     addMessage(data);
                 } else if (data.type === 'message') {
+                    console.log('[Chat] User message from:', data.username, '- text:', data.text);
                     addMessage(data);
+                } else {
+                    console.warn('[Chat] Unknown message type:', data.type, data);
                 }
             };
 

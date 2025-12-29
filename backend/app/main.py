@@ -64,7 +64,7 @@ async def health_check():
 
 
 # Import and include routers
-from app.api import auth, player, inventory, pets, shop, battles, debug, dev, pvp, websocket as pvp_websocket
+from app.api import auth, player, inventory, pets, shop, battles, debug, dev, pvp, websocket as pvp_websocket, chat
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(player.router, prefix="/api/player", tags=["Player"])
@@ -72,6 +72,7 @@ app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory"]
 app.include_router(pets.router, prefix="/api/pets", tags=["Pets"])
 app.include_router(shop.router, prefix="/api/shop", tags=["Shop"])
 app.include_router(battles.router, prefix="/api/battles", tags=["Battles"])
+app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
 app.include_router(pvp.router, prefix="/api", tags=["PVP"])
 app.include_router(debug.router, prefix="/api", tags=["Debug"])
 app.include_router(dev.router, prefix="/api/dev", tags=["Development"])

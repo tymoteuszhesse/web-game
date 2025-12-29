@@ -8,6 +8,7 @@ from app.core.security import decode_access_token
 from app.db.database import get_db
 from app.models.user import User
 from app.models.player import Player
+from app.models.chat_message import ChatMessage
 
 logger = structlog.get_logger()
 
@@ -17,10 +18,9 @@ router = APIRouter()
 class ChatConnectionManager:
     def __init__(self):
         self.active_connections: List[Dict] = []
-        self.message_history: List[Dict] = []
-        self.max_history = 100  # Keep last 100 messages
+        self.max_history = 100  # Keep last 100 messages in memory (deprecated - now using DB)
 
-    async def connect(self, websocket: WebSocket, user_id: int, username: str):
+    async def connect(self, websocket: WebSocket, user_id: int, username: str, db: Session):
         """Connect a player to the global chat"""
         await websocket.accept()
 
@@ -41,12 +41,21 @@ class ChatConnectionManager:
                    username=username,
                    total_users=len(self.active_connections))
 
-        # Send message history to the newly connected user
-        for message in self.message_history:
-            try:
-                await websocket.send_json(message)
-            except Exception as e:
-                logger.error("failed_to_send_history", error=str(e))
+        # Send persisted message history from database to the newly connected user
+        try:
+            # Fetch last 100 messages from database
+            messages = db.query(ChatMessage).order_by(
+                ChatMessage.created_at.desc()
+            ).limit(100).all()
+
+            # Send in chronological order (oldest first)
+            for message in reversed(messages):
+                try:
+                    await websocket.send_json(message.to_dict())
+                except Exception as e:
+                    logger.error("failed_to_send_history", error=str(e))
+        except Exception as e:
+            logger.error("failed_to_load_chat_history", error=str(e))
 
         # Broadcast online count to all users
         await self.broadcast_online_count()
@@ -58,7 +67,9 @@ class ChatConnectionManager:
             "timestamp": datetime.utcnow().isoformat()
         }
         await self.broadcast(join_message)
-        self._add_to_history(join_message)
+
+        # Persist join message to database
+        self._persist_system_message(db, user_id, username, join_message["message"])
 
     def disconnect(self, websocket: WebSocket, username: str = None):
         """Disconnect a player from the chat"""
@@ -71,12 +82,37 @@ class ChatConnectionManager:
                    username=username,
                    total_users=len(self.active_connections))
 
-    def _add_to_history(self, message: dict):
-        """Add a message to the history buffer"""
-        self.message_history.append(message)
-        # Keep only the last max_history messages
-        if len(self.message_history) > self.max_history:
-            self.message_history = self.message_history[-self.max_history:]
+    def _persist_system_message(self, db: Session, user_id: int, username: str, message: str):
+        """Persist a system message to the database"""
+        try:
+            chat_message = ChatMessage(
+                user_id=user_id,
+                username=username,
+                text=message,
+                message_type="system"
+            )
+            db.add(chat_message)
+            db.commit()
+        except Exception as e:
+            logger.error("failed_to_persist_system_message", error=str(e))
+            db.rollback()
+
+    def _persist_user_message(self, db: Session, user_id: int, username: str, text: str):
+        """Persist a user message to the database"""
+        try:
+            chat_message = ChatMessage(
+                user_id=user_id,
+                username=username,
+                text=text,
+                message_type="message"
+            )
+            db.add(chat_message)
+            db.commit()
+            return chat_message
+        except Exception as e:
+            logger.error("failed_to_persist_user_message", error=str(e))
+            db.rollback()
+            return None
 
     async def broadcast(self, message: dict):
         """Broadcast a message to all connected users"""
@@ -137,13 +173,16 @@ async def chat_websocket(
         return
 
     # Connect the user
-    await chat_manager.connect(websocket, user_id, username)
+    await chat_manager.connect(websocket, user_id, username, db)
 
     try:
         while True:
             # Receive message from client
             data = await websocket.receive_text()
             message_data = json.loads(data)
+
+            # Extract text from message
+            text = message_data.get("text", "")
 
             # Add server-side metadata
             message_data["username"] = username
@@ -154,13 +193,17 @@ async def chat_websocket(
             logger.info("chat_message_received",
                        user_id=user_id,
                        username=username,
-                       message=message_data.get("text", "")[:50])
+                       message=text[:50])
+
+            # Persist message to database
+            persisted_message = chat_manager._persist_user_message(db, user_id, username, text)
+
+            # If persistence succeeded, use the persisted message data
+            if persisted_message:
+                message_data = persisted_message.to_dict()
 
             # Broadcast to all connected users
             await chat_manager.broadcast(message_data)
-
-            # Add to message history
-            chat_manager._add_to_history(message_data)
 
     except WebSocketDisconnect:
         logger.info("chat_websocket_disconnect", user_id=user_id, username=username)
@@ -176,4 +219,6 @@ async def chat_websocket(
             "timestamp": datetime.utcnow().isoformat()
         }
         await chat_manager.broadcast(leave_message)
-        chat_manager._add_to_history(leave_message)
+
+        # Persist leave message to database
+        chat_manager._persist_system_message(db, user_id, username, leave_message["message"])

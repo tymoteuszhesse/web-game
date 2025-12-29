@@ -1,8 +1,10 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from typing import Dict, List
+from sqlalchemy.orm import Session
 import json
 import structlog
 from app.core.security import decode_access_token
+from app.models.battle_log import BattleLog
 
 logger = structlog.get_logger()
 
@@ -122,6 +124,24 @@ async def battle_websocket_endpoint(websocket: WebSocket, battle_id: int, token:
 
         # Connect player to battle
         await manager.connect(websocket, battle_id, user_id, username)
+
+        # Send persisted battle log history from database
+        try:
+            # Fetch last 100 battle logs from database for this battle
+            battle_logs = db.query(BattleLog).filter(
+                BattleLog.battle_id == battle_id
+            ).order_by(
+                BattleLog.created_at.desc()
+            ).limit(100).all()
+
+            # Send in chronological order (oldest first)
+            for log in reversed(battle_logs):
+                try:
+                    await websocket.send_json(log.to_dict())
+                except Exception as e:
+                    logger.error("failed_to_send_battle_log_history", error=str(e))
+        except Exception as e:
+            logger.error("failed_to_load_battle_log_history", error=str(e))
 
         # Send welcome message
         await manager.send_personal_message(websocket, {

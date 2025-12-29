@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.user import User
 from app.models.player import Player
-from app.models.battle import Battle, DifficultyLevel, BattleParticipant, BattleType, BattleStatus
+from app.models.battle import Battle, DifficultyLevel, BattleParticipant, BattleType, BattleStatus, BattleEnemy
+from app.models.battle_log import BattleLog
 from app.core.security import get_current_active_user
 from app.services.battle_service import BattleService
 from app.websocket.battle_ws import get_battle_manager
@@ -22,6 +23,40 @@ import asyncio
 
 router = APIRouter()
 logger = structlog.get_logger()
+
+
+def persist_battle_log(
+    db: Session,
+    battle_id: int,
+    log_type: str,
+    message: str,
+    user_id: int = None,
+    username: str = None,
+    enemy_id: int = None,
+    enemy_name: str = None,
+    damage: int = None,
+    enemy_hp_remaining: int = None
+):
+    """Helper function to persist battle log to database"""
+    try:
+        battle_log = BattleLog(
+            battle_id=battle_id,
+            user_id=user_id,
+            username=username,
+            log_type=log_type,
+            message=message,
+            enemy_id=enemy_id,
+            enemy_name=enemy_name,
+            damage=damage,
+            enemy_hp_remaining=enemy_hp_remaining
+        )
+        db.add(battle_log)
+        db.commit()
+        return battle_log
+    except Exception as e:
+        logger.error("failed_to_persist_battle_log", error=str(e))
+        db.rollback()
+        return None
 
 
 @router.post("/create", response_model=BattleInfo)
@@ -317,6 +352,26 @@ async def attack_enemy(
             detail=result.get("error", "Attack failed")
         )
 
+    # Get enemy name for logging
+    enemy = db.query(BattleEnemy).filter(BattleEnemy.id == attack_req.enemy_id).first()
+    enemy_name = enemy.name if enemy else "Enemy"
+
+    # Persist attack log to database
+    crit_text = " (CRITICAL HIT!)" if result.get("is_critical") else ""
+    attack_message = f"{player.username} dealt {result.get('damage')} damage to {enemy_name}{crit_text}"
+    persist_battle_log(
+        db=db,
+        battle_id=battle_id,
+        log_type="attack",
+        message=attack_message,
+        user_id=current_user.id,
+        username=player.username,
+        enemy_id=result.get("enemy_id"),
+        enemy_name=enemy_name,
+        damage=result.get("damage"),
+        enemy_hp_remaining=result.get("enemy_hp_remaining")
+    )
+
     # Broadcast attack event to all players in battle via WebSocket
     manager = get_battle_manager()
     background_tasks.add_task(
@@ -337,6 +392,19 @@ async def attack_enemy(
 
     # If enemy was defeated, broadcast that event too
     if result.get("enemy_defeated"):
+        # Persist enemy defeated log
+        defeat_message = f"{enemy_name} has been defeated by {player.username}!"
+        persist_battle_log(
+            db=db,
+            battle_id=battle_id,
+            log_type="enemy_defeated",
+            message=defeat_message,
+            user_id=current_user.id,
+            username=player.username,
+            enemy_id=result.get("enemy_id"),
+            enemy_name=enemy_name
+        )
+
         background_tasks.add_task(
             manager.broadcast_to_battle,
             battle_id,
@@ -539,3 +607,45 @@ async def get_my_battle_history(
     ).order_by(BattleParticipant.joined_at.desc()).limit(min(limit, 100)).all()
 
     return [BattleParticipantInfo.model_validate(p) for p in history]
+
+
+@router.get("/{battle_id}/logs")
+async def get_battle_logs(
+    battle_id: int,
+    limit: int = 100,
+    offset: int = 0,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get battle log history for a specific battle
+
+    Returns battle events (attacks, enemy defeats, etc.) in chronological order
+    """
+    # Verify battle exists
+    battle = db.query(Battle).filter(Battle.id == battle_id).first()
+    if not battle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Battle not found"
+        )
+
+    try:
+        # Fetch battle logs from database
+        logs = db.query(BattleLog).filter(
+            BattleLog.battle_id == battle_id
+        ).order_by(
+            BattleLog.created_at.desc()
+        ).limit(min(limit, 500)).offset(offset).all()
+
+        # Convert to dictionary format (reverse to get chronological order)
+        result = [log.to_dict() for log in reversed(logs)]
+
+        return {"battle_id": battle_id, "logs": result, "count": len(result)}
+
+    except Exception as e:
+        logger.error("failed_to_fetch_battle_logs", battle_id=battle_id, error=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch battle logs"
+        )

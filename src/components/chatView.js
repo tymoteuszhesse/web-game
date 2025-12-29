@@ -434,6 +434,11 @@ function initializeChat(messagesArea, messageInput, inputForm) {
 
     // Add message to UI
     function addMessage(message) {
+        console.log('[Chat] addMessage called with:', message);
+        console.log('[Chat] messagesArea exists:', !!messagesArea);
+        console.log('[Chat] messagesArea ID:', messagesArea?.id);
+        console.log('[Chat] Current messages count:', messages.length);
+
         // CRITICAL FIX: Use message ID for duplicate detection instead of text comparison
         // Text comparison can prevent legitimate duplicate messages
         if (message.id) {
@@ -456,8 +461,16 @@ function initializeChat(messagesArea, messageInput, inputForm) {
         }
 
         messages.push(message);
+        console.log('[Chat] Total messages in array after push:', messages.length);
+
         const messageEl = createMessageElement(message);
+        console.log('[Chat] Created message element:', messageEl);
+        console.log('[Chat] Element textContent:', messageEl.textContent);
+
         messagesArea.appendChild(messageEl);
+        console.log('[Chat] Message appended to DOM');
+        console.log('[Chat] Total children in messagesArea:', messagesArea.children.length);
+        console.log('[Chat] messagesArea visible:', messagesArea.offsetParent !== null);
 
         // Scroll to bottom with smooth animation
         setTimeout(() => {
@@ -465,6 +478,7 @@ function initializeChat(messagesArea, messageInput, inputForm) {
                 top: messagesArea.scrollHeight,
                 behavior: 'smooth'
             });
+            console.log('[Chat] Scrolled to bottom. ScrollHeight:', messagesArea.scrollHeight);
         }, 50);
     }
 

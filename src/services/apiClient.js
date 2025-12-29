@@ -89,7 +89,21 @@ class APIClient {
                 }
 
                 // Throw error with backend message
-                throw new Error(data.detail || data.message || `HTTP ${response.status}: ${response.statusText}`);
+                let errorMessage = data.message || `HTTP ${response.status}: ${response.statusText}`;
+
+                // Handle detail field (can be string or array of validation errors)
+                if (data.detail) {
+                    if (typeof data.detail === 'string') {
+                        errorMessage = data.detail;
+                    } else if (Array.isArray(data.detail)) {
+                        // FastAPI validation errors
+                        errorMessage = data.detail.map(err => err.msg || JSON.stringify(err)).join(', ');
+                    } else {
+                        errorMessage = JSON.stringify(data.detail);
+                    }
+                }
+
+                throw new Error(errorMessage);
             }
 
             return data;

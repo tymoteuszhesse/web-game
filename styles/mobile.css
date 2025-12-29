@@ -1,0 +1,648 @@
+/* ═══════════════════════════════════════════════════════════
+   MOBILE-FIRST ENHANCEMENTS
+   Professional mobile web experience for Fantasy RPG
+   ═══════════════════════════════════════════════════════════ */
+
+/* === Mobile Base Improvements === */
+@media (max-width: 768px) {
+    body {
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    /* Improved readability */
+    * {
+        -webkit-tap-highlight-color: rgba(212, 175, 55, 0.2);
+        -webkit-touch-callout: none;
+    }
+
+    /* Better scrolling on iOS */
+    body {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+    }
+
+    /* Header Optimizations */
+    .game-header {
+        padding: var(--space-sm) var(--space-sm);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    /* Resources Bar - Improved Grid Layout */
+    .resources-bar {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-sm);
+        margin-bottom: var(--space-md);
+    }
+
+    .resource-item {
+        min-width: unset;
+        padding: var(--space-sm);
+        min-height: 85px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Larger touch targets for resources */
+    .resource-icon-wrapper {
+        width: 48px;
+        height: 48px;
+    }
+
+    .resource-icon {
+        font-size: 2em;
+    }
+
+    .resource-value-overlay {
+        font-size: 0.9rem;
+        margin-top: var(--space-xs);
+    }
+
+    .resource-label {
+        font-size: 0.65rem;
+        letter-spacing: 1px;
+        margin-top: var(--space-xs);
+    }
+
+    /* Player Info - Stack Vertically */
+    .player-info {
+        display: flex;
+        flex-direction: row;
+        gap: var(--space-sm);
+        align-items: stretch;
+    }
+
+    .level-display {
+        min-width: 70px;
+        flex-shrink: 0;
+    }
+
+    .level-value {
+        font-size: 1.4rem;
+    }
+
+    .exp-bar-container {
+        flex: 1;
+        max-width: 100%;
+    }
+
+    /* Auth Button - Mobile Optimized */
+    .auth-button-container {
+        position: relative;
+        top: auto;
+        right: auto;
+        transform: none;
+        width: 100%;
+        margin-top: var(--space-md);
+    }
+
+    .auth-header-button {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 20px;
+        font-size: 0.9em;
+        min-height: 48px; /* iOS recommended touch target */
+        border-radius: var(--radius-md);
+    }
+
+    /* Main Content */
+    #app-container {
+        padding: var(--space-lg) var(--space-sm);
+    }
+
+    /* Typography Adjustments */
+    h1 {
+        font-size: 1.75rem;
+        line-height: 1.3;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        line-height: 1.3;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+        line-height: 1.3;
+    }
+
+    /* Card Components - Mobile Friendly */
+    .card {
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
+    }
+
+    .card-title {
+        font-size: 1.15rem;
+    }
+
+    /* Grid Layouts - Single Column */
+    [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Buttons - Larger Touch Targets */
+    button,
+    .btn,
+    .button {
+        min-height: 48px;
+        padding: 12px 20px;
+        font-size: 1em;
+    }
+
+    /* Form Inputs */
+    input,
+    textarea,
+    select {
+        min-height: 48px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+        padding: 12px 16px;
+    }
+
+    /* Battle Cards */
+    .battle-card,
+    .enemy-card {
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
+    }
+
+    /* Shop Grid */
+    .shop-grid {
+        grid-template-columns: 1fr !important;
+        gap: var(--space-md);
+    }
+
+    /* Pet Grid */
+    .pets-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    }
+}
+
+/* === Small Mobile Devices (480px and below) === */
+@media (max-width: 480px) {
+    :root {
+        --space-xs: 0.2rem;
+        --space-sm: 0.4rem;
+        --space-md: 0.8rem;
+        --space-lg: 1.2rem;
+        --space-xl: 2rem;
+    }
+
+    body {
+        font-size: 14px;
+    }
+
+    /* Compact Header */
+    .game-header {
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    /* Hide decorative elements on very small screens */
+    .game-header::before,
+    .game-header::after {
+        display: none;
+    }
+
+    .card::before,
+    .card::after {
+        display: none;
+    }
+
+    /* Resources - Smaller Icons */
+    .resource-item {
+        min-height: 75px;
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    .resource-icon-wrapper {
+        width: 42px;
+        height: 42px;
+    }
+
+    .resource-icon {
+        font-size: 1.75em;
+    }
+
+    .resource-value-overlay {
+        font-size: 0.85rem;
+    }
+
+    .resource-label {
+        font-size: 0.6rem;
+    }
+
+    /* Compact Level Display */
+    .level-display {
+        min-width: 65px;
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    .level-label {
+        font-size: 0.6rem;
+    }
+
+    .level-value {
+        font-size: 1.3rem;
+    }
+
+    /* Exp Bar */
+    .exp-bar {
+        height: 12px;
+    }
+
+    .exp-label,
+    .exp-values {
+        font-size: 0.7rem;
+    }
+
+    /* Main Content */
+    #app-container {
+        padding: var(--space-md) var(--space-sm);
+    }
+
+    /* Typography */
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    h3 {
+        font-size: 1.15rem;
+    }
+
+    /* Cards */
+    .card {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-sm);
+    }
+
+    /* Welcome Section */
+    [style*="Welcome"] h1 {
+        font-size: 1.5em !important;
+    }
+
+    [style*="Welcome"] p {
+        font-size: 0.95em !important;
+    }
+}
+
+/* === Landscape Mobile Optimization === */
+@media (max-width: 768px) and (orientation: landscape) {
+    .game-header {
+        padding: var(--space-xs) var(--space-md);
+    }
+
+    .resources-bar {
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--space-xs);
+    }
+
+    .resource-item {
+        min-height: 70px;
+        padding: var(--space-xs);
+    }
+
+    .player-info {
+        flex-direction: row;
+        gap: var(--space-sm);
+    }
+
+    .auth-button-container {
+        margin-top: var(--space-sm);
+    }
+
+    #app-container {
+        padding: var(--space-md) var(--space-lg);
+    }
+}
+
+/* === Touch Interaction Enhancements === */
+@media (hover: none) and (pointer: coarse) {
+    /* Active/Touch States */
+    button:active,
+    .btn:active,
+    .button:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+
+    .card:active {
+        transform: scale(0.99);
+    }
+
+    .resource-item:active {
+        transform: scale(0.97);
+    }
+
+    /* Remove hover effects on touch devices */
+    .card:hover::before,
+    .card:hover::after {
+        opacity: 0.3;
+    }
+
+    .resource-item:hover {
+        transform: none;
+    }
+
+    /* Better tap feedback */
+    a, button, [role="button"], .clickable {
+        -webkit-tap-highlight-color: rgba(212, 175, 55, 0.3);
+    }
+}
+
+/* === Improved Scrollbar for Mobile === */
+@media (max-width: 768px) {
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--gold-dark);
+        border-radius: 3px;
+        border: none;
+    }
+}
+
+/* === Safe Area Insets (iPhone X+) === */
+@supports (padding: max(0px)) {
+    body {
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+    }
+
+    .game-header {
+        padding-left: max(var(--space-sm), env(safe-area-inset-left));
+        padding-right: max(var(--space-sm), env(safe-area-inset-right));
+    }
+
+    #app-container {
+        padding-left: max(var(--space-sm), env(safe-area-inset-left));
+        padding-right: max(var(--space-sm), env(safe-area-inset-right));
+        padding-bottom: max(var(--space-xl), env(safe-area-inset-bottom));
+    }
+}
+
+/* === iOS Specific Fixes === */
+@supports (-webkit-touch-callout: none) {
+    /* Fix iOS Safari bottom bar issues */
+    body {
+        min-height: -webkit-fill-available;
+    }
+
+    /* Prevent iOS text size adjustment */
+    body {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    /* Smoother scrolling */
+    * {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* === Accessibility - Larger Text Support === */
+@media (max-width: 768px) {
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+        .card,
+        .resource-item,
+        .level-display {
+            border-width: 2px;
+        }
+
+        button,
+        .btn {
+            border: 2px solid currentColor;
+        }
+    }
+}
+
+/* === Loading States === */
+@media (max-width: 768px) {
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+    }
+
+    .skeleton {
+        border-radius: var(--radius-md);
+    }
+}
+
+/* === Modals and Overlays === */
+@media (max-width: 768px) {
+    .modal,
+    .overlay {
+        padding: var(--space-md);
+    }
+
+    .modal-content {
+        max-width: 95vw;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        padding: var(--space-md);
+    }
+
+    .modal-body {
+        padding: var(--space-md);
+    }
+
+    .modal-footer {
+        padding: var(--space-md);
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    .modal-footer button {
+        width: 100%;
+    }
+}
+
+/* === Battle View Mobile Optimizations === */
+@media (max-width: 768px) {
+    .battle-container {
+        padding: var(--space-sm);
+    }
+
+    .battle-actions {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: var(--space-sm);
+    }
+
+    .battle-action-button {
+        min-height: 52px;
+        font-size: 0.95em;
+    }
+
+    .health-bar-container {
+        margin: var(--space-sm) 0;
+    }
+
+    .battle-log {
+        max-height: 200px;
+        font-size: 0.9em;
+    }
+}
+
+/* === Shop View Mobile === */
+@media (max-width: 768px) {
+    .shop-item {
+        padding: var(--space-md);
+    }
+
+    .shop-item-image {
+        width: 80px;
+        height: 80px;
+    }
+
+    .shop-item-price {
+        font-size: 1.1em;
+    }
+
+    .shop-buy-button {
+        width: 100%;
+        margin-top: var(--space-sm);
+    }
+}
+
+/* === Inventory Mobile === */
+@media (max-width: 768px) {
+    .inventory-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+        gap: var(--space-sm);
+    }
+
+    .inventory-item {
+        padding: var(--space-sm);
+        min-height: 110px;
+    }
+
+    .inventory-item-icon {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* === Chat View Mobile === */
+@media (max-width: 768px) {
+    .chat-container {
+        height: calc(100vh - 200px);
+        max-height: 500px;
+    }
+
+    .chat-messages {
+        padding: var(--space-sm);
+    }
+
+    .chat-input-container {
+        padding: var(--space-sm);
+        gap: var(--space-sm);
+    }
+
+    .chat-input {
+        font-size: 16px; /* Prevent iOS zoom */
+    }
+
+    .chat-send-button {
+        min-width: 60px;
+        flex-shrink: 0;
+    }
+}
+
+/* === PVP Arena Mobile === */
+@media (max-width: 768px) {
+    .pvp-arena-container {
+        padding: var(--space-sm);
+    }
+
+    .pvp-queue-button {
+        width: 100%;
+        min-height: 56px;
+        font-size: 1.1em;
+    }
+
+    .pvp-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-sm);
+    }
+
+    .pvp-leaderboard {
+        overflow-x: auto;
+    }
+
+    .pvp-leaderboard table {
+        font-size: 0.85em;
+    }
+}
+
+/* === Notification System Mobile === */
+@media (max-width: 768px) {
+    .notification {
+        width: calc(100vw - 2 * var(--space-md));
+        max-width: 400px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.9em;
+    }
+
+    .notification-close {
+        min-width: 32px;
+        min-height: 32px;
+    }
+}
+
+/* === Progressive Enhancement === */
+@media (max-width: 768px) {
+    /* Reduce animation complexity on mobile */
+    .card,
+    .button,
+    .resource-item {
+        will-change: auto;
+    }
+
+    /* Optimize background for mobile */
+    body::before {
+        opacity: 0.5;
+    }
+
+    /* Reduce blur effects on low-end devices */
+    @media (max-width: 480px) {
+        .card {
+            backdrop-filter: blur(8px);
+        }
+
+        .game-header {
+            backdrop-filter: blur(12px);
+        }
+    }
+}

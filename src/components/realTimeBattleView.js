@@ -169,18 +169,40 @@ async function createRealTimeBattleView(battleId) {
         container.appendChild(layout);
 
         // Set up stamina regeneration listener
-        // This will update all enemy card attack buttons when stamina regenerates
-        const staminaUpdateInterval = setInterval(() => {
-            const currentPlayer = PlayerData.get();
-            const currentStamina = currentPlayer.stamina;
+        // This will fetch real stamina from backend and update all enemy card attack buttons
+        const staminaUpdateInterval = setInterval(async () => {
+            try {
+                // Fetch fresh player data from backend to get accurate stamina
+                const freshPlayerData = await apiClient.getPlayerInfo();
 
-            // Update all enemy cards with attack buttons
-            document.querySelectorAll('[data-enemy-id]').forEach(card => {
-                if (card.updateAttackButtons && typeof card.updateAttackButtons === 'function') {
-                    card.updateAttackButtons(currentStamina);
-                }
-            });
-        }, 1000); // Check every second
+                // Update local state with backend stamina value
+                const currentPlayer = PlayerData.get();
+                currentPlayer.stamina = freshPlayerData.stamina;
+                currentPlayer.stamina_max = freshPlayerData.stamina_max;
+                gameState.set('player', currentPlayer);
+
+                // Update header UI
+                PlayerData.updateUI();
+
+                // Update all enemy cards with attack buttons
+                document.querySelectorAll('[data-enemy-id]').forEach(card => {
+                    if (card.updateAttackButtons && typeof card.updateAttackButtons === 'function') {
+                        card.updateAttackButtons(freshPlayerData.stamina);
+                    }
+                });
+            } catch (error) {
+                // Silently fail - don't spam console if API is temporarily unavailable
+                // Still try to update with local stamina as fallback
+                const currentPlayer = PlayerData.get();
+                const currentStamina = currentPlayer.stamina;
+
+                document.querySelectorAll('[data-enemy-id]').forEach(card => {
+                    if (card.updateAttackButtons && typeof card.updateAttackButtons === 'function') {
+                        card.updateAttackButtons(currentStamina);
+                    }
+                });
+            }
+        }, 3000); // Check every 3 seconds (backend regenerates every 10s)
 
         // Clean up interval on navigation
         const originalCleanup = window.currentBattleCleanup;

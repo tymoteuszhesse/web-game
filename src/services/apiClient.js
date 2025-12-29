@@ -2,13 +2,13 @@
  * API Client Service
  * Handles all HTTP requests to the backend API
  *
- * Base URL: http://localhost:8001
+ * Base URL: http://217.182.65.174
  * Authentication: JWT tokens stored in localStorage
  */
 
 class APIClient {
     constructor() {
-        this.baseURL = 'http://localhost:8001';
+        this.baseURL = 'http://217.182.65.174';
         this.tokenKey = 'auth_token';
     }
 

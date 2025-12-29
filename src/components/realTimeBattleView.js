@@ -1287,7 +1287,14 @@ function initializeBattleWebSocket(battle) {
             );
         }
 
-        updateEnemyHP(data.enemy_id, data.enemy_hp_remaining, enemyHpMax);
+        // CRITICAL FIX: Always update HP bar after attack, with fallback to 0 if enemy defeated
+        const hpRemaining = data.enemy_hp_remaining !== undefined ? data.enemy_hp_remaining : 0;
+        updateEnemyHP(data.enemy_id, hpRemaining, enemyHpMax);
+
+        // If HP is 0 but enemy_defeated flag not set yet, mark as defeated
+        if (hpRemaining <= 0 && !data.enemy_defeated) {
+            markEnemyAsDefeated(data.enemy_id);
+        }
     });
 
     battleWS.on('enemy_defeated', (data) => {
@@ -1532,19 +1539,27 @@ function updateEnemyHP(enemyId, hpCurrent, hpMax) {
     const card = document.querySelector(`[data-enemy-id="${enemyId}"]`);
 
     if (!card) {
+        console.warn(`[Battle] Cannot update HP - enemy card not found: ${enemyId}`);
         return;
     }
 
     const hpText = card.querySelector('.enemy-hp-text');
     const hpBar = card.querySelector('.enemy-hp-bar');
 
+    // Ensure HP values are valid numbers
+    const currentHP = Math.max(0, parseInt(hpCurrent) || 0);
+    const maxHP = Math.max(1, parseInt(hpMax) || 1); // Prevent division by zero
+
     if (hpText) {
-        hpText.textContent = `${hpCurrent} / ${hpMax}`;
+        hpText.textContent = `${currentHP} / ${maxHP}`;
     }
 
     if (hpBar) {
-        const percent = (hpCurrent / hpMax) * 100;
+        const percent = Math.min(100, Math.max(0, (currentHP / maxHP) * 100));
         hpBar.style.width = `${percent}%`;
+
+        // Add smooth transition for HP bar updates
+        hpBar.style.transition = 'width 0.3s ease-out';
     }
 }
 
@@ -1554,6 +1569,20 @@ function updateEnemyHP(enemyId, hpCurrent, hpMax) {
 function markEnemyAsDefeated(enemyId) {
     const card = document.querySelector(`[data-enemy-id="${enemyId}"]`);
     if (!card) return;
+
+    // Update HP to 0 FIRST (critical fix)
+    const hpText = card.querySelector('.enemy-hp-text');
+    const hpBar = card.querySelector('.enemy-hp-bar');
+
+    if (hpText) {
+        const maxHpMatch = hpText.textContent.match(/\/ (\d+)/);
+        const maxHp = maxHpMatch ? maxHpMatch[1] : '???';
+        hpText.textContent = `0 / ${maxHp}`;
+    }
+
+    if (hpBar) {
+        hpBar.style.width = '0%';
+    }
 
     // Update title
     const title = card.querySelector('.card-title');

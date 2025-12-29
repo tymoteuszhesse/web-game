@@ -116,13 +116,28 @@ class ChatConnectionManager:
 
     async def broadcast(self, message: dict):
         """Broadcast a message to all connected users"""
+        logger.info("broadcast_called",
+                   message_type=message.get("type"),
+                   total_connections=len(self.active_connections))
+
         disconnected = []
+        sent_count = 0
         for connection in self.active_connections:
             try:
                 await connection["websocket"].send_json(message)
+                sent_count += 1
+                logger.debug("message_sent_to_user",
+                            username=connection.get("username"),
+                            message_type=message.get("type"))
             except Exception as e:
-                logger.error("failed_to_send_message", error=str(e))
+                logger.error("failed_to_send_message",
+                            username=connection.get("username"),
+                            error=str(e))
                 disconnected.append(connection)
+
+        logger.info("broadcast_completed",
+                   sent_count=sent_count,
+                   failed_count=len(disconnected))
 
         # Remove disconnected clients
         for conn in disconnected:
@@ -198,12 +213,23 @@ async def chat_websocket(
             # Persist message to database
             persisted_message = chat_manager._persist_user_message(db, user_id, username, text)
 
-            # If persistence succeeded, use the persisted message data
+            # If persistence succeeded, use the persisted message data with ID
             if persisted_message:
                 message_data = persisted_message.to_dict()
+                logger.info("chat_message_persisted_with_id",
+                           message_id=persisted_message.id,
+                           username=username)
+            else:
+                logger.warning("chat_message_persistence_failed_broadcasting_without_id",
+                              username=username)
 
             # Broadcast to all connected users
+            logger.info("chat_broadcasting_message",
+                       username=username,
+                       message_id=message_data.get("id"),
+                       connected_users=len(chat_manager.active_connections))
             await chat_manager.broadcast(message_data)
+            logger.info("chat_broadcast_completed", username=username)
 
     except WebSocketDisconnect:
         logger.info("chat_websocket_disconnect", user_id=user_id, username=username)

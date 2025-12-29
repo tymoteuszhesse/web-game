@@ -726,6 +726,8 @@ function createEnemyCard(enemy, battle) {
             text: '⚔️ Execute Attack',
             variant: 'primary',
             onClick: async () => {
+                // Store reference to button for WebSocket handler
+                attackBtn.dataset.enemyId = enemy.id;
                 attackBtn.disabled = true;
                 const originalText = attackBtn.textContent;
                 attackBtn.textContent = 'Attacking...';
@@ -764,7 +766,11 @@ function createEnemyCard(enemy, battle) {
                         });
                     }
 
-                    // WebSocket will handle the UI update
+                    // Re-enable button immediately after successful API call
+                    // WebSocket will provide visual feedback via battle log
+                    attackBtn.disabled = false;
+                    attackBtn.textContent = originalText;
+
                 } catch (error) {
                     NotificationSystem.show(error.message, 'error');
 
@@ -1212,15 +1218,6 @@ function initializeBattleWebSocket(battle) {
         }
 
         updateEnemyHP(data.enemy_id, data.enemy_hp_remaining, enemyHpMax);
-
-        // Re-enable attack buttons
-        const attackButtons = document.querySelectorAll('button');
-        attackButtons.forEach(btn => {
-            if (btn.textContent === 'Attacking...') {
-                btn.disabled = false;
-                btn.textContent = '⚔️ Attack';
-            }
-        });
     });
 
     battleWS.on('enemy_defeated', (data) => {

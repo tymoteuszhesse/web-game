@@ -37,6 +37,10 @@ async def get_player_profile(
     # Regenerate stamina if needed
     _regenerate_stamina(player, db)
 
+    # Filter out expired buffs
+    now = datetime.utcnow()
+    player.active_buffs = [buff for buff in player.active_buffs if buff.expires_at > now]
+
     return player
 
 

@@ -363,6 +363,31 @@ const PlayerData = {
 
             timeEl.textContent = `${displayHours}:${minutes}:${seconds} ${ampm}`;
         }
+    },
+
+    /**
+     * Sync player data from API
+     */
+    async syncFromAPI() {
+        try {
+            const playerData = await apiClient.getPlayerStats();
+
+            // Update player state with fresh data from server
+            gameState.set('player', playerData);
+
+            // Update UI to reflect changes
+            this.updateUI();
+
+            // Update active buffs display if available
+            if (window.ActiveBuffsDisplay) {
+                await window.ActiveBuffsDisplay.updateBuffs();
+            }
+
+            return playerData;
+        } catch (error) {
+            console.error('Failed to sync player data from API:', error);
+            throw error;
+        }
     }
 };
 

@@ -1,0 +1,353 @@
+/**
+ * Active Buffs Display
+ * Alchemical mysticism aesthetic - glowing essence vials with liquid animations
+ */
+
+.active-buffs-container {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-left: auto;
+    padding: 0 20px;
+}
+
+.buff-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg,
+        rgba(15, 10, 25, 0.95) 0%,
+        rgba(25, 15, 40, 0.95) 100%
+    );
+    border: 1px solid rgba(180, 140, 90, 0.3);
+    border-radius: 12px;
+    padding: 10px 14px;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 0 20px rgba(180, 140, 90, 0.1);
+    backdrop-filter: blur(8px);
+    animation: buff-card-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    min-width: 180px;
+}
+
+@keyframes buff-card-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Mystical Vial Container */
+.buff-vial {
+    position: relative;
+    width: 36px;
+    height: 48px;
+    background: linear-gradient(to bottom,
+        rgba(60, 40, 30, 0.4),
+        rgba(40, 25, 20, 0.6)
+    );
+    border: 2px solid rgba(180, 140, 90, 0.5);
+    border-radius: 6px 6px 8px 8px;
+    overflow: hidden;
+    box-shadow:
+        inset 0 2px 8px rgba(0, 0, 0, 0.5),
+        0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.buff-vial::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(to bottom,
+        rgba(80, 60, 40, 0.8),
+        rgba(60, 40, 30, 0.6)
+    );
+    border-bottom: 1px solid rgba(180, 140, 90, 0.3);
+}
+
+/* Liquid Fill Animation */
+.buff-liquid {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top,
+        rgba(59, 130, 246, 0.8),
+        rgba(96, 165, 250, 0.6)
+    );
+    transition: height 1s ease-out;
+    box-shadow:
+        0 -2px 12px rgba(59, 130, 246, 0.5),
+        inset 0 -2px 6px rgba(96, 165, 250, 0.4);
+    animation: liquid-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes liquid-shimmer {
+    0%, 100% {
+        filter: brightness(1) saturate(1);
+    }
+    50% {
+        filter: brightness(1.2) saturate(1.3);
+    }
+}
+
+/* Stamina Boost - Blue/Electric */
+.buff-card[data-buff-type="stamina_boost"] .buff-liquid {
+    background: linear-gradient(to top,
+        rgba(59, 130, 246, 0.9),
+        rgba(96, 165, 250, 0.7)
+    );
+    box-shadow:
+        0 -2px 12px rgba(59, 130, 246, 0.6),
+        inset 0 -2px 6px rgba(96, 165, 250, 0.5);
+}
+
+.buff-card[data-buff-type="stamina_boost"] .buff-glow {
+    background: radial-gradient(circle at center,
+        rgba(59, 130, 246, 0.15),
+        transparent 70%
+    );
+}
+
+/* Attack Boost - Red/Fire */
+.buff-card[data-buff-type="attack_boost"] .buff-liquid {
+    background: linear-gradient(to top,
+        rgba(239, 68, 68, 0.9),
+        rgba(252, 165, 165, 0.7)
+    );
+    box-shadow:
+        0 -2px 12px rgba(239, 68, 68, 0.6),
+        inset 0 -2px 6px rgba(252, 165, 165, 0.5);
+    animation: liquid-shimmer 2s ease-in-out infinite, fire-flicker 0.15s ease-in-out infinite;
+}
+
+@keyframes fire-flicker {
+    0%, 100% {
+        opacity: 0.9;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.buff-card[data-buff-type="attack_boost"] .buff-glow {
+    background: radial-gradient(circle at center,
+        rgba(239, 68, 68, 0.15),
+        transparent 70%
+    );
+}
+
+/* Defense Boost - Green/Nature */
+.buff-card[data-buff-type="defense_boost"] .buff-liquid {
+    background: linear-gradient(to top,
+        rgba(16, 185, 129, 0.9),
+        rgba(110, 231, 183, 0.7)
+    );
+    box-shadow:
+        0 -2px 12px rgba(16, 185, 129, 0.6),
+        inset 0 -2px 6px rgba(110, 231, 183, 0.5);
+}
+
+.buff-card[data-buff-type="defense_boost"] .buff-glow {
+    background: radial-gradient(circle at center,
+        rgba(16, 185, 129, 0.15),
+        transparent 70%
+    );
+}
+
+/* Vial Icon Overlay */
+.buff-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    z-index: 2;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+    animation: icon-float 3s ease-in-out infinite;
+}
+
+@keyframes icon-float {
+    0%, 100% {
+        transform: translate(-50%, -50%);
+    }
+    50% {
+        transform: translate(-50%, -55%);
+    }
+}
+
+/* Buff Details */
+.buff-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.buff-name {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f5e6d3;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.buff-value {
+    font-family: 'EB Garamond', serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(180, 140, 90, 1);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.buff-timer {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    width: fit-content;
+    letter-spacing: 0.5px;
+}
+
+/* Ambient Glow Effect */
+.buff-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120%;
+    height: 120%;
+    border-radius: 12px;
+    pointer-events: none;
+    z-index: -1;
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+}
+
+/* Parchment Texture Overlay */
+.buff-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(180, 140, 90, 0.02) 2px,
+            rgba(180, 140, 90, 0.02) 4px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 2px,
+            rgba(180, 140, 90, 0.02) 2px,
+            rgba(180, 140, 90, 0.02) 4px
+        );
+    pointer-events: none;
+    border-radius: 12px;
+    opacity: 0.3;
+}
+
+/* Hover Effects */
+.buff-card:hover {
+    border-color: rgba(180, 140, 90, 0.6);
+    box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 30px rgba(180, 140, 90, 0.2);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+.buff-card:hover .buff-liquid {
+    filter: brightness(1.2);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .active-buffs-container {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .buff-card {
+        min-width: 160px;
+        padding: 8px 12px;
+    }
+
+    .buff-vial {
+        width: 32px;
+        height: 42px;
+    }
+
+    .buff-name {
+        font-size: 11px;
+    }
+
+    .buff-value {
+        font-size: 13px;
+    }
+
+    .buff-timer {
+        font-size: 10px;
+    }
+}
+
+/* Low Time Warning */
+.buff-card.low-time .buff-timer {
+    color: #fbbf24;
+    animation: timer-warning 1s ease-in-out infinite;
+}
+
+.buff-card.critical-time .buff-timer {
+    color: #ef4444;
+    animation: timer-critical 0.5s ease-in-out infinite;
+}
+
+@keyframes timer-warning {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes timer-critical {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}

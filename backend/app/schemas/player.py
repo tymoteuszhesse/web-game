@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
@@ -21,11 +21,26 @@ class PlayerStats(BaseModel):
     unspent_stat_points: int
 
 
+class ActiveBuffSchema(BaseModel):
+    """Active buff information"""
+    id: int
+    buff_type: str
+    effect_value: int
+    applied_at: datetime
+    expires_at: datetime
+    source: str
+
+    class Config:
+        from_attributes = True
+        use_enum_values = True
+
+
 class PlayerResponse(PlayerBase, PlayerStats):
     id: int
     user_id: int
     created_at: datetime
     updated_at: datetime
+    active_buffs: List[ActiveBuffSchema] = []
 
     class Config:
         from_attributes = True

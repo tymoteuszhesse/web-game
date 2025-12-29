@@ -67,6 +67,8 @@ class ActiveBuffsDisplay {
 
         // Filter out expired buffs
         const now = new Date();
+        console.log('[ActiveBuffs] Current time:', now);
+        console.log('[ActiveBuffs] Buffs expiry times:', this.buffs.map(b => ({ id: b.id, type: b.type, expiresAt: b.expiresAt, expired: b.expiresAt <= now })));
         const activeBuffs = this.buffs.filter(buff => buff.expiresAt > now);
 
         console.log('[ActiveBuffs] Active buffs after filtering:', activeBuffs);

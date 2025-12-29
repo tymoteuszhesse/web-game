@@ -427,3 +427,30 @@ async def use_potion(
 
     response_data["buff_applied"] = buff_applied
     return UsePotionResponse(**response_data)
+
+
+@router.post("/cleanup-expired-buffs")
+async def cleanup_expired_buffs(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Clean up all expired buffs for current player"""
+    player = db.query(Player).filter(Player.user_id == current_user.id).first()
+    if not player:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Player not found"
+        )
+
+    # Delete expired buffs
+    now = datetime.utcnow()
+    deleted_count = db.query(ActiveBuff).filter(
+        ActiveBuff.player_id == player.id,
+        ActiveBuff.expires_at <= now
+    ).delete()
+    db.commit()
+
+    return {
+        "message": f"Cleaned up {deleted_count} expired buffs",
+        "deleted_count": deleted_count
+    }

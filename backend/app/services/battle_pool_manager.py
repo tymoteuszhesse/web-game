@@ -26,20 +26,14 @@ class BattlePoolManager:
         Maintains exactly 1 Easy, 1 Medium, and 1 Hard/Legendary battle
         """
         try:
-            # Required difficulty distribution for standard battles
-            required_difficulties = [
-                DifficultyLevel.EASY,
-                DifficultyLevel.MEDIUM,
-                random.choice([DifficultyLevel.HARD, DifficultyLevel.LEGENDARY])
-            ]
-
-            # Get existing battles by difficulty
+            # Get existing WAITING battles
             existing_battles = db.query(Battle).filter(
                 Battle.battle_type == BattleType.STANDARD,
                 Battle.status == BattleStatus.WAITING
             ).all()
 
             existing_difficulties = [b.difficulty for b in existing_battles]
+            current_count = len(existing_battles)
 
             # Count available boss raids
             boss_count = db.query(Battle).filter(
@@ -49,9 +43,28 @@ class BattlePoolManager:
 
             battles_created = 0
 
-            # Create missing difficulty battles
-            for difficulty in required_difficulties:
-                if difficulty not in existing_difficulties:
+            # Only create battles if we have less than 3 standard battles
+            if current_count < STANDARD_BATTLE_POOL_SIZE:
+                # Determine which difficulties we need
+                needed_difficulties = []
+
+                # Always ensure we have EASY and MEDIUM
+                if DifficultyLevel.EASY not in existing_difficulties:
+                    needed_difficulties.append(DifficultyLevel.EASY)
+                if DifficultyLevel.MEDIUM not in existing_difficulties:
+                    needed_difficulties.append(DifficultyLevel.MEDIUM)
+
+                # For the third slot, prefer HARD/LEGENDARY if missing
+                has_hard_or_legendary = (
+                    DifficultyLevel.HARD in existing_difficulties or
+                    DifficultyLevel.LEGENDARY in existing_difficulties
+                )
+
+                if not has_hard_or_legendary:
+                    needed_difficulties.append(random.choice([DifficultyLevel.HARD, DifficultyLevel.LEGENDARY]))
+
+                # Create only the needed battles (up to pool size)
+                for difficulty in needed_difficulties[:STANDARD_BATTLE_POOL_SIZE - current_count]:
                     battle = BattleService.create_battle(
                         db=db,
                         difficulty=difficulty,
@@ -62,10 +75,8 @@ class BattlePoolManager:
                     battles_created += 1
                     logger.info("standard_battle_created",
                                battle_id=battle.id,
-                               difficulty=difficulty.value)
-                else:
-                    # Remove from list so we don't create duplicates
-                    existing_difficulties.remove(difficulty)
+                               difficulty=difficulty.value,
+                               total_waiting=current_count + battles_created)
 
             # Create boss raids if needed
             for _ in range(BOSS_RAID_POOL_SIZE - boss_count):
@@ -95,6 +106,17 @@ class BattlePoolManager:
 
             if battles_created > 0:
                 logger.info("battle_pool_replenished", battles_created=battles_created)
+
+            # Cleanup old completed battles (keep last 10 for history)
+            completed_battles = db.query(Battle).filter(
+                Battle.status == BattleStatus.COMPLETED
+            ).order_by(Battle.completed_at.desc()).offset(10).all()
+
+            if completed_battles:
+                for battle in completed_battles:
+                    db.delete(battle)
+                db.commit()
+                logger.info("cleaned_up_old_battles", count=len(completed_battles))
 
             # Count final state
             final_standard_count = db.query(Battle).filter(

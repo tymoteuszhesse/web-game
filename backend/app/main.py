@@ -15,8 +15,10 @@ structlog.configure(
 
 logger = structlog.get_logger()
 
-# Create database tables
-base.Base.metadata.create_all(bind=engine)
+# NOTE: Do NOT use create_all() - use Alembic migrations instead
+# Tables are managed by: alembic upgrade head
+# Commenting out to prevent conflicts with Alembic
+# base.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Web Game API",

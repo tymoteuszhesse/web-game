@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.ColoredThemeIcons) {
         document.getElementById('stamina-icon').innerHTML = ColoredThemeIcons.render('stamina');
         document.getElementById('gold-icon').innerHTML = ColoredThemeIcons.render('gold');
-        document.getElementById('gems-icon').innerHTML = ColoredThemeIcons.render('gems');
         document.getElementById('exp-icon').innerHTML = ColoredThemeIcons.render('exp');
         document.getElementById('time-icon').innerHTML = ColoredThemeIcons.render('clock');
     }

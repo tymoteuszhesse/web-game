@@ -177,10 +177,12 @@ const InventoryData = {
     },
 
     /**
-     * Get unequipped items (only equipment)
+     * Get unequipped items (only equipment, exclude consumables)
      */
     getUnequippedItems() {
-        return this._cache.items || [];
+        const items = this._cache.items || [];
+        // Filter out consumables/potions - they have their own view
+        return items.filter(item => item.item_type !== 'consumable');
     },
 
     /**

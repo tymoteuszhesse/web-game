@@ -16,6 +16,7 @@ from app.schemas.shop import (
     ShopEquipmentItem,
     ShopEggItem,
     ShopFoodItem,
+    ShopPotionItem,
     ShopItemStats,
     ShopCatalogResponse,
     PurchaseHistoryItem
@@ -491,10 +492,151 @@ class ShopService:
             ),
         ]
 
+        potion_items = [
+            # === STAMINA RESTORE POTIONS ===
+            ShopPotionItem(
+                id="potion_stamina_small",
+                name="Minor Stamina Potion",
+                type="CONSUMABLE",
+                rarity="COMMON",
+                level=1,
+                price=50,
+                description="Restores 50 stamina instantly",
+                icon="Icon1.png",
+                potion_type="STAMINA_RESTORE",
+                effect_value=50
+            ),
+            ShopPotionItem(
+                id="potion_stamina_medium",
+                name="Stamina Potion",
+                type="CONSUMABLE",
+                rarity="UNCOMMON",
+                level=5,
+                price=100,
+                description="Restores 100 stamina instantly",
+                icon="Icon2.png",
+                potion_type="STAMINA_RESTORE",
+                effect_value=100
+            ),
+            ShopPotionItem(
+                id="potion_stamina_large",
+                name="Greater Stamina Potion",
+                type="CONSUMABLE",
+                rarity="RARE",
+                level=10,
+                price=200,
+                description="Restores 200 stamina instantly",
+                icon="Icon3.png",
+                potion_type="STAMINA_RESTORE",
+                effect_value=200
+            ),
+            ShopPotionItem(
+                id="potion_stamina_full",
+                name="Full Stamina Elixir",
+                type="CONSUMABLE",
+                rarity="EPIC",
+                level=15,
+                price=500,
+                gem_price=10,
+                description="Completely restores all stamina to maximum",
+                icon="Icon4.png",
+                potion_type="STAMINA_RESTORE",
+                effect_value=9999
+            ),
+
+            # === STAMINA BOOST POTIONS (Temporary Max Increase) ===
+            ShopPotionItem(
+                id="potion_stamina_boost",
+                name="Endurance Elixir",
+                type="CONSUMABLE",
+                rarity="RARE",
+                level=20,
+                price=800,
+                gem_price=15,
+                description="Temporarily increases maximum stamina to 500 for 5 minutes",
+                icon="Icon5.png",
+                potion_type="STAMINA_BOOST",
+                effect_value=500,
+                duration=300
+            ),
+            ShopPotionItem(
+                id="potion_stamina_mega_boost",
+                name="Titan's Endurance",
+                type="CONSUMABLE",
+                rarity="LEGENDARY",
+                level=30,
+                price=1500,
+                gem_price=25,
+                description="Temporarily increases maximum stamina to 1000 for 10 minutes",
+                icon="Icon6.png",
+                potion_type="STAMINA_BOOST",
+                effect_value=1000,
+                duration=600
+            ),
+
+            # === ATTACK BOOST POTIONS ===
+            ShopPotionItem(
+                id="potion_attack_2x",
+                name="Strength Potion",
+                type="CONSUMABLE",
+                rarity="UNCOMMON",
+                level=8,
+                price=300,
+                description="Doubles attack power for 3 minutes",
+                icon="Icon7.png",
+                potion_type="ATTACK_BOOST",
+                effect_value=2,
+                duration=180
+            ),
+            ShopPotionItem(
+                id="potion_attack_3x",
+                name="Greater Strength Potion",
+                type="CONSUMABLE",
+                rarity="RARE",
+                level=15,
+                price=600,
+                gem_price=12,
+                description="Triples attack power for 3 minutes",
+                icon="Icon8.png",
+                potion_type="ATTACK_BOOST",
+                effect_value=3,
+                duration=180
+            ),
+            ShopPotionItem(
+                id="potion_attack_5x",
+                name="Berserker's Rage",
+                type="CONSUMABLE",
+                rarity="EPIC",
+                level=25,
+                price=1200,
+                gem_price=20,
+                description="Multiplies attack power by 5x for 5 minutes",
+                icon="Icon9.png",
+                potion_type="ATTACK_BOOST",
+                effect_value=5,
+                duration=300
+            ),
+            ShopPotionItem(
+                id="potion_attack_10x",
+                name="Divine Fury",
+                type="CONSUMABLE",
+                rarity="LEGENDARY",
+                level=40,
+                price=3000,
+                gem_price=50,
+                description="Multiplies attack power by 10x for 5 minutes - Ultimate power!",
+                icon="Icon10.png",
+                potion_type="ATTACK_BOOST",
+                effect_value=10,
+                duration=300
+            ),
+        ]
+
         return ShopCatalogResponse(
             equipment=equipment_items,
             eggs=egg_items,
-            food=food_items
+            food=food_items,
+            potions=potion_items
         )
 
     @staticmethod
@@ -514,6 +656,11 @@ class ShopService:
 
         # Search in food
         for item in catalog.food:
+            if item.id == item_id:
+                return item.model_dump()
+
+        # Search in potions
+        for item in catalog.potions:
             if item.id == item_id:
                 return item.model_dump()
 
@@ -635,6 +782,46 @@ class ShopService:
                 db.add(inv_item)
                 db.flush()
                 unique_item_id = str(inv_item.id)
+
+            elif item_type == "CONSUMABLE":
+                # Add potion to inventory
+                from app.models.inventory import ItemType, ItemRarity
+
+                # Check if player already has this potion type (for stacking)
+                existing_potion = db.query(InventoryItem).filter(
+                    InventoryItem.player_id == player.id,
+                    InventoryItem.name == item["name"],
+                    InventoryItem.item_type == ItemType.CONSUMABLE
+                ).first()
+
+                if existing_potion:
+                    # Stack with existing potion
+                    existing_potion.quantity += 1
+                    unique_item_id = str(existing_potion.id)
+                else:
+                    # Create new potion stack
+                    inv_item = InventoryItem(
+                        player_id=player.id,
+                        name=item["name"],
+                        item_type=ItemType.CONSUMABLE,
+                        rarity=ItemRarity(item["rarity"].lower()),
+                        level_requirement=item.get("level", 1),
+                        attack_bonus=0,
+                        defense_bonus=0,
+                        hp_bonus=0,
+                        # Store potion properties in JSON
+                        properties={
+                            "potion_type": item["potion_type"],
+                            "effect_value": item["effect_value"],
+                            "duration": item.get("duration"),
+                            "description": item["description"],
+                            "icon": item.get("icon")
+                        },
+                        quantity=1
+                    )
+                    db.add(inv_item)
+                    db.flush()
+                    unique_item_id = str(inv_item.id)
 
             else:
                 # Add equipment to inventory

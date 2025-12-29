@@ -39,6 +39,13 @@ class ShopFoodItem(ShopItemBase):
     pet_exp: int  # How much XP this food gives
 
 
+class ShopPotionItem(ShopItemBase):
+    """Potion (consumable) item in shop"""
+    potion_type: str  # STAMINA_RESTORE, STAMINA_BOOST, ATTACK_BOOST
+    effect_value: int  # Amount of effect (stamina points, attack multiplier, etc.)
+    duration: Optional[int] = None  # Duration in seconds for temporary effects
+
+
 class PurchaseRequest(BaseModel):
     """Request to purchase an item"""
     item_id: str = Field(..., description="ID of the item to purchase")
@@ -59,6 +66,7 @@ class ShopCatalogResponse(BaseModel):
     equipment: list[ShopEquipmentItem]
     eggs: list[ShopEggItem]
     food: list[ShopFoodItem]
+    potions: list[ShopPotionItem]
 
 
 class PurchaseHistoryItem(BaseModel):

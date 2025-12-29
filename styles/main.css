@@ -730,6 +730,47 @@ p {
 }
 
 /* === Auth Button in Header === */
+/* Quick Access Buttons */
+.quick-access-buttons {
+    position: absolute;
+    top: 50%;
+    right: 180px;
+    transform: translateY(-50%);
+    z-index: 10;
+    display: flex;
+    gap: 12px;
+}
+
+.header-icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: rgba(139, 92, 246, 0.2);
+    border: 2px solid rgba(139, 92, 246, 0.4);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-smooth);
+    position: relative;
+}
+
+.header-icon-button:hover {
+    background: rgba(139, 92, 246, 0.3);
+    border-color: rgba(139, 92, 246, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.header-icon-button:active {
+    transform: translateY(0);
+}
+
+.header-icon-button .button-icon {
+    font-size: 1.5em;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
 .auth-button-container {
     position: absolute;
     top: 50%;

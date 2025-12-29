@@ -16,6 +16,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize auth button
     initializeAuthButton();
 
+    // Initialize potions quick-access button
+    const potionsButton = document.getElementById('potions-button');
+    if (potionsButton) {
+        potionsButton.addEventListener('click', () => {
+            router.navigate('potions');
+        });
+    }
+
     // Auth route (must be registered first, before auth check)
     router.register('auth', () => {
         return createAuthView();
@@ -367,6 +375,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Pets route - Full implementation
     router.register('pets', () => {
         return createPetsView();
+    });
+
+    // Potions route - Quick access to use potions
+    router.register('potions', async () => {
+        return await createPotionsView();
     });
 
     // Chat route - Tavern chat system

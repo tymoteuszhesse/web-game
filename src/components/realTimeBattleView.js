@@ -1081,15 +1081,26 @@ function showVictoryUI(battle, battleWS) {
                 rewardsSection.style.transform = 'scale(1)';
             }, 300);
 
-            // Update player data - ensure we refresh from backend
-            const updatedPlayer = await apiClient.getPlayerInfo();
+            // Update player data - ensure we refresh from backend with cache busting
+            const updatedPlayer = await apiClient.get(`/api/player/me?_=${Date.now()}`);
             console.log('[Victory] Updated player data from backend:', updatedPlayer);
 
-            // Set player data in game state
+            // IMPORTANT: Force complete player state replacement
             gameState.set('player', updatedPlayer);
 
             // Immediately update UI with fresh data
             PlayerData.updateUI();
+
+            // Force exp display update
+            const currentExpEl = document.getElementById('current-exp');
+            const maxExpEl = document.getElementById('max-exp');
+            const expBarEl = document.getElementById('exp-bar-fill');
+            if (currentExpEl && maxExpEl && expBarEl && updatedPlayer.exp !== undefined) {
+                currentExpEl.textContent = Math.floor(updatedPlayer.exp).toLocaleString('en-US');
+                maxExpEl.textContent = Math.floor(updatedPlayer.exp_max || 100).toLocaleString('en-US');
+                const expPercentage = Math.min(100, Math.max(0, (updatedPlayer.exp / (updatedPlayer.exp_max || 100)) * 100));
+                expBarEl.style.width = `${expPercentage}%`;
+            }
 
             // Double-check level is refreshed in header after short delay
             setTimeout(() => {

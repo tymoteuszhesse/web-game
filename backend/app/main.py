@@ -82,5 +82,5 @@ app.include_router(dev.router, prefix="/api/dev", tags=["Development"])
 # Include WebSocket
 from app.websocket import battle_ws, chat_ws
 app.include_router(battle_ws.router)
-app.include_router(chat_ws.router, prefix="/api", tags=["WebSocket"])
+app.include_router(chat_ws.router)
 app.include_router(pvp_websocket.router, prefix="/api", tags=["WebSocket"])

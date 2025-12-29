@@ -297,6 +297,13 @@ async def use_potion(
                 detail="Stamina boost potion missing duration"
             )
 
+        # Clean up expired buffs first
+        db.query(ActiveBuff).filter(
+            ActiveBuff.player_id == player.id,
+            ActiveBuff.expires_at <= datetime.utcnow()
+        ).delete()
+        db.commit()
+
         # Check if player already has a stamina boost active
         existing_boost = db.query(ActiveBuff).filter(
             ActiveBuff.player_id == player.id,
@@ -344,6 +351,13 @@ async def use_potion(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Attack boost potion missing duration"
             )
+
+        # Clean up expired buffs first
+        db.query(ActiveBuff).filter(
+            ActiveBuff.player_id == player.id,
+            ActiveBuff.expires_at <= datetime.utcnow()
+        ).delete()
+        db.commit()
 
         # Check if player already has an attack boost active
         existing_boost = db.query(ActiveBuff).filter(

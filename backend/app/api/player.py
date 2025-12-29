@@ -39,7 +39,9 @@ async def get_player_profile(
 
     # Filter out expired buffs
     now = datetime.utcnow()
+    logger.info("active_buffs_before_filter", player_id=player.id, buffs_count=len(player.active_buffs), buffs=[{"id": b.id, "type": b.buff_type, "expires_at": b.expires_at} for b in player.active_buffs])
     player.active_buffs = [buff for buff in player.active_buffs if buff.expires_at > now]
+    logger.info("active_buffs_after_filter", player_id=player.id, buffs_count=len(player.active_buffs), now=now)
 
     return player
 

@@ -182,8 +182,7 @@ class ActiveBuffsDisplay {
      */
     async syncFromAPI() {
         try {
-            const playerData = await apiClient.getPlayerStats();
-            const player = PlayerData.get();
+            const playerData = await apiClient.getPlayerInfo();
 
             // Update active buffs in player data
             gameState.set('player.active_buffs', playerData.active_buffs || []);

@@ -370,7 +370,7 @@ const PlayerData = {
      */
     async syncFromAPI() {
         try {
-            const playerData = await apiClient.getPlayerStats();
+            const playerData = await apiClient.getPlayerInfo();
 
             // Update player state with fresh data from server
             gameState.set('player', playerData);

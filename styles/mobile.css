@@ -8,6 +8,8 @@
     body {
         font-size: 15px;
         line-height: 1.6;
+        /* Add padding to compensate for sticky header */
+        padding-top: 0;
     }
 
     /* Improved readability */
@@ -22,12 +24,32 @@
         overscroll-behavior-y: contain;
     }
 
-    /* Header Optimizations */
+    /* === SMART COLLAPSIBLE HEADER === */
     .game-header {
         padding: var(--space-sm) var(--space-sm);
         position: sticky;
         top: 0;
         z-index: 1000;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    padding 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+    }
+
+    /* Compact mode when scrolling down */
+    .game-header.compact {
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    /* Hidden mode when scrolled down significantly */
+    .game-header.hidden {
+        transform: translateY(-100%);
+        box-shadow: none;
+    }
+
+    /* Visible mode when scrolling up */
+    .game-header.visible {
+        transform: translateY(0);
     }
 
     /* Resources Bar - Improved Grid Layout */
@@ -36,6 +58,13 @@
         grid-template-columns: repeat(2, 1fr);
         gap: var(--space-sm);
         margin-bottom: var(--space-md);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Compact resources in header compact mode */
+    .game-header.compact .resources-bar {
+        gap: var(--space-xs);
+        margin-bottom: var(--space-sm);
     }
 
     .resource-item {
@@ -46,6 +75,13 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Compact resource items */
+    .game-header.compact .resource-item {
+        min-height: 70px;
+        padding: var(--space-xs) var(--space-sm);
     }
 
     /* Larger touch targets for resources */
@@ -75,20 +111,50 @@
         flex-direction: row;
         gap: var(--space-sm);
         align-items: stretch;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Compact player info */
+    .game-header.compact .player-info {
+        gap: var(--space-xs);
     }
 
     .level-display {
         min-width: 70px;
         flex-shrink: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .game-header.compact .level-display {
+        min-width: 60px;
+        padding: var(--space-xs) var(--space-sm);
     }
 
     .level-value {
         font-size: 1.4rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .game-header.compact .level-value {
+        font-size: 1.2rem;
     }
 
     .exp-bar-container {
         flex: 1;
         max-width: 100%;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .game-header.compact .exp-bar-container {
+        padding: var(--space-xs);
+    }
+
+    .game-header.compact .exp-bar {
+        height: 10px;
+    }
+
+    .game-header.compact .exp-text {
+        font-size: 0.7rem;
     }
 
     /* Auth Button - Mobile Optimized */

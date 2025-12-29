@@ -797,6 +797,9 @@ class BattleService:
 
         db.commit()
 
+        # CRITICAL: Refresh player to ensure all changes from award_xp are visible
+        db.refresh(player)
+
         logger.info(
             "loot_claimed",
             battle_id=battle.id,
@@ -804,7 +807,9 @@ class BattleService:
             gold=gold_reward,
             xp=xp_reward,
             items=len(items_dropped),
-            leveled_up=level_up_info["leveled_up"]
+            leveled_up=level_up_info["leveled_up"],
+            player_exp_after=player.exp,
+            player_level_after=player.level
         )
 
         return {

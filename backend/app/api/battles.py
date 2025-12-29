@@ -570,6 +570,20 @@ async def claim_loot(
             detail=result.get("error", "Failed to claim loot")
         )
 
+    # CRITICAL: Refresh player again to ensure all DB changes are visible
+    # claim_loot does 2 commits (one in award_xp, one for participant)
+    # We need to refresh player object to get the latest exp/level/gold values
+    db.refresh(player)
+
+    logger.info(
+        "claim_loot_api_complete",
+        battle_id=battle_id,
+        player_id=player.id,
+        player_gold=player.gold,
+        player_exp=player.exp,
+        player_level=player.level
+    )
+
     # Broadcast loot claim event
     manager = get_battle_manager()
     background_tasks.add_task(

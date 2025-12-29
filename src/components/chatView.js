@@ -484,7 +484,7 @@ function initializeChat(messagesArea, messageInput, inputForm) {
         }
 
         try {
-            ws = new WebSocket(`ws://217.182.65.174/ws/chat?token=${token}`);
+            ws = new WebSocket(`ws://217.182.65.174/api/ws/chat?token=${token}`);
 
             ws.onopen = () => {
                 console.log('Chat WebSocket connected');

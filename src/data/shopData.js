@@ -33,10 +33,10 @@ const ShopData = {
                 return ['helmet', 'armor', 'boots', 'gloves', 'HELMET', 'ARMOR', 'BOOTS', 'GLOVES'].includes(item.item_type || item.type);
             } else if (category === 'accessories') {
                 return ['ring', 'ring2', 'amulet', 'RING', 'RING2', 'AMULET'].includes(item.item_type || item.type);
+            } else if (category === 'potions' || category === 'consumables') {
+                return item.type === 'CONSUMABLE';
             } else if (category === 'equipment') {
                 return item.category === 'equipment';
-            } else if (category === 'consumables') {
-                return item.category === 'consumables';
             }
             return item.category === category;
         });
@@ -58,12 +58,13 @@ const ShopData = {
             this._loading = true;
             const catalog = await apiClient.getShopItems();
 
-            // The API returns {equipment: [], eggs: [], food: []}
+            // The API returns {equipment: [], eggs: [], food: [], potions: []}
             // Flatten all categories into a single array
             const allItems = [
                 ...(catalog.equipment || []),
                 ...(catalog.eggs || []),
-                ...(catalog.food || [])
+                ...(catalog.food || []),
+                ...(catalog.potions || [])
             ];
 
             // Transform API items to UI format
@@ -82,7 +83,11 @@ const ShopData = {
                 item_type: item.type,
                 pet_exp: item.pet_exp || 0,
                 pet_type: item.pet_type || null,
-                icon: item.icon || null  // Add icon property from API
+                icon: item.icon || null,
+                // Potion-specific fields
+                potion_type: item.potion_type || null,
+                effect_value: item.effect_value || 0,
+                duration: item.duration || null
             }));
 
             return this._cache;
@@ -101,6 +106,7 @@ const ShopData = {
     _determineCategory(item) {
         if (item.type === 'EGG') return 'eggs';
         if (item.type === 'FOOD') return 'food';
+        if (item.type === 'CONSUMABLE') return 'potions';
         return 'equipment';
     },
 

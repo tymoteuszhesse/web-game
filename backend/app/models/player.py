@@ -43,6 +43,7 @@ class Player(Base):
     pet_sets = relationship("PetSet", back_populates="player", cascade="all, delete-orphan")
     battle_participations = relationship("BattleParticipant", back_populates="player", cascade="all, delete-orphan")
     shop_purchases = relationship("ShopPurchase", back_populates="player", cascade="all, delete-orphan")
+    active_buffs = relationship("ActiveBuff", back_populates="player", cascade="all, delete-orphan")
 
     def calculate_total_attack(self):
         """Calculate total attack including equipment and pets"""

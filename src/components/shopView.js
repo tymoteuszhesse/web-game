@@ -135,7 +135,8 @@ async function createShopView() {
         { id: 'all', label: '🛒 All Items', emoji: '🛒' },
         { id: 'weapons', label: '⚔️ Weapons', emoji: '⚔️' },
         { id: 'armor', label: '🛡️ Armor', emoji: '🛡️' },
-        { id: 'accessories', label: '💍 Accessories', emoji: '💍' }
+        { id: 'accessories', label: '💍 Accessories', emoji: '💍' },
+        { id: 'potions', label: '🧪 Potions', emoji: '🧪' }
     ];
 
     // Content area that will be updated
@@ -516,10 +517,11 @@ function createShopItemCard(item, renderItems, currentTab) {
         iconPlaceholder.appendChild(effectLayer);
     }
 
-    // Enhanced icon loading for weapons with custom PNG icons
-    if (item.icon && item.type === 'WEAPON') {
+    // Enhanced icon loading for items with custom PNG icons (weapons, potions)
+    if (item.icon && (item.type === 'WEAPON' || item.type === 'CONSUMABLE')) {
         const iconImg = document.createElement('img');
-        iconImg.src = `assets/icons/weapons/${item.icon}`;
+        const iconFolder = item.type === 'WEAPON' ? 'weapons' : 'potions';
+        iconImg.src = `assets/icons/${iconFolder}/${item.icon}`;
         iconImg.alt = item.name;
         iconImg.style.cssText = `
             width: 100%;
@@ -602,29 +604,63 @@ function createShopItemCard(item, renderItems, currentTab) {
     }
     card.appendChild(levelReq);
 
-    // Stats
+    // Stats (for equipment) or Effects (for potions)
     const stats = document.createElement('div');
     stats.style.cssText = 'margin: 12px 0; font-size: 0.9em;';
 
-    if (item.stats && item.stats.attack > 0) {
-        const attackDiv = document.createElement('div');
-        attackDiv.style.cssText = 'color: var(--text-secondary); margin-bottom: 4px;';
-        attackDiv.innerHTML = `⚔️ ATK: <span style="color: var(--text-primary); font-weight: bold;">+${item.stats.attack}</span>`;
-        stats.appendChild(attackDiv);
-    }
+    if (item.type === 'CONSUMABLE' && item.potion_type) {
+        // Display potion effects
+        if (item.potion_type === 'STAMINA_RESTORE') {
+            const effectDiv = document.createElement('div');
+            effectDiv.style.cssText = 'color: var(--text-secondary); margin-bottom: 4px;';
+            const restoreText = item.effect_value >= 9999 ? 'Full' : `+${item.effect_value}`;
+            effectDiv.innerHTML = `⚡ Restore: <span style="color: #3b82f6; font-weight: bold;">${restoreText} Stamina</span>`;
+            stats.appendChild(effectDiv);
+        } else if (item.potion_type === 'STAMINA_BOOST') {
+            const effectDiv = document.createElement('div');
+            effectDiv.style.cssText = 'color: var(--text-secondary); margin-bottom: 4px;';
+            effectDiv.innerHTML = `⚡ Boost: <span style="color: #3b82f6; font-weight: bold;">Max → ${item.effect_value}</span>`;
+            stats.appendChild(effectDiv);
+            if (item.duration) {
+                const durationDiv = document.createElement('div');
+                durationDiv.style.cssText = 'color: var(--text-secondary); margin-bottom: 4px;';
+                durationDiv.innerHTML = `⏱️ Duration: <span style="color: var(--text-primary); font-weight: bold;">${item.duration / 60}min</span>`;
+                stats.appendChild(durationDiv);
+            }
+        } else if (item.potion_type === 'ATTACK_BOOST') {
+            const effectDiv = document.createElement('div');
+            effectDiv.style.cssText = 'color: var(--text-secondary); margin-bottom: 4px;';
+            effectDiv.innerHTML = `⚔️ Boost: <span style="color: #ef4444; font-weight: bold;">${item.effect_value}x Attack</span>`;
+            stats.appendChild(effectDiv);
+            if (item.duration) {
+                const durationDiv = document.createElement('div');
+                durationDiv.style.cssText = 'color: var(--text-secondary); margin-bottom: 4px;';
+                durationDiv.innerHTML = `⏱️ Duration: <span style="color: var(--text-primary); font-weight: bold;">${item.duration / 60}min</span>`;
+                stats.appendChild(durationDiv);
+            }
+        }
+    } else {
+        // Display equipment stats
+        if (item.stats && item.stats.attack > 0) {
+            const attackDiv = document.createElement('div');
+            attackDiv.style.cssText = 'color: var(--text-secondary); margin-bottom: 4px;';
+            attackDiv.innerHTML = `⚔️ ATK: <span style="color: var(--text-primary); font-weight: bold;">+${item.stats.attack}</span>`;
+            stats.appendChild(attackDiv);
+        }
 
-    if (item.stats && item.stats.defense > 0) {
-        const defenseDiv = document.createElement('div');
-        defenseDiv.style.cssText = 'color: var(--text-secondary); margin-bottom: 4px;';
-        defenseDiv.innerHTML = `🛡️ DEF: <span style="color: var(--text-primary); font-weight: bold;">+${item.stats.defense}</span>`;
-        stats.appendChild(defenseDiv);
-    }
+        if (item.stats && item.stats.defense > 0) {
+            const defenseDiv = document.createElement('div');
+            defenseDiv.style.cssText = 'color: var(--text-secondary); margin-bottom: 4px;';
+            defenseDiv.innerHTML = `🛡️ DEF: <span style="color: var(--text-primary); font-weight: bold;">+${item.stats.defense}</span>`;
+            stats.appendChild(defenseDiv);
+        }
 
-    if (item.stats && item.stats.hp > 0) {
-        const hpDiv = document.createElement('div');
-        hpDiv.style.cssText = 'color: var(--text-secondary); margin-bottom: 4px;';
-        hpDiv.innerHTML = `❤️ HP: <span style="color: var(--text-primary); font-weight: bold;">+${item.stats.hp}</span>`;
-        stats.appendChild(hpDiv);
+        if (item.stats && item.stats.hp > 0) {
+            const hpDiv = document.createElement('div');
+            hpDiv.style.cssText = 'color: var(--text-secondary); margin-bottom: 4px;';
+            hpDiv.innerHTML = `❤️ HP: <span style="color: var(--text-primary); font-weight: bold;">+${item.stats.hp}</span>`;
+            stats.appendChild(hpDiv);
+        }
     }
 
     card.appendChild(stats);
@@ -918,6 +954,33 @@ function getCategoryStyle(type, rarity) {
             shadow: `0 4px 12px ${rarityColor}50`,
             borderColor: `${rarityColor}60`,
             hasEffect: false
+        },
+        'CONSUMABLE': {
+            className: 'potion-icon',
+            background: `
+                linear-gradient(135deg,
+                    ${rarityColor}40 0%,
+                    ${rarityColor}20 50%,
+                    ${rarityColor}10 100%
+                )
+            `,
+            shadow: `
+                0 4px 16px ${rarityColor}60,
+                0 0 20px ${rarityColor}30,
+                inset 0 2px 8px rgba(255, 255, 255, 0.2)
+            `,
+            borderColor: `${rarityColor}70`,
+            hasEffect: true,
+            effectClass: 'potion-bubble',
+            effectStyle: `
+                background:
+                    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4) 3px, transparent 3px),
+                    radial-gradient(circle at 60% 50%, rgba(255, 255, 255, 0.3) 2px, transparent 2px),
+                    radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.35) 2.5px, transparent 2.5px),
+                    radial-gradient(circle at 70% 75%, rgba(255, 255, 255, 0.3) 2px, transparent 2px);
+                background-size: 100% 100%;
+                animation: bubbleFloat 4s ease-in-out infinite;
+            `
         }
     };
 
@@ -949,6 +1012,11 @@ function getItemEmoji(item) {
             'COMMON': '🍞'      // Bread
         };
         return foodEmojis[item.rarity] || '🍖';
+    }
+
+    // Handle potions/consumables
+    if (item.type === 'CONSUMABLE') {
+        return '🧪';  // Potion emoji for all potions
     }
 
     // Handle equipment

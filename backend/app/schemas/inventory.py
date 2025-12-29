@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
+from datetime import datetime
 from app.models.inventory import ItemType, ItemRarity, EquipmentSlot, SetType
 
 
@@ -13,6 +14,7 @@ class InventoryItemResponse(BaseModel):
     defense_bonus: int
     hp_bonus: int
     quantity: int
+    properties: Optional[Dict[str, Any]] = None
 
     class Config:
         from_attributes = True
@@ -55,3 +57,26 @@ class EquipmentStatsResponse(BaseModel):
     attack: int
     defense: int
     hp: int
+
+
+class ActiveBuffResponse(BaseModel):
+    """Response for an active buff"""
+    id: int
+    buff_type: str
+    effect_value: int
+    applied_at: datetime
+    expires_at: datetime
+    source: str
+
+    class Config:
+        from_attributes = True
+
+
+class UsePotionResponse(BaseModel):
+    """Response after using a potion"""
+    success: bool
+    message: str
+    stamina: Optional[int] = None
+    stamina_max: Optional[int] = None
+    buff_applied: Optional[ActiveBuffResponse] = None
+    remaining_quantity: int

@@ -22,6 +22,7 @@ class ActiveBuff(Base):
     # Buff details
     buff_type = Column(SQLEnum(BuffType), nullable=False)
     effect_value = Column(Integer, nullable=False)  # Multiplier or flat value
+    original_value = Column(Integer, nullable=True)  # Original value to restore when buff expires (for stamina_max, etc.)
 
     # Timing
     applied_at = Column(DateTime, default=datetime.utcnow, nullable=False)

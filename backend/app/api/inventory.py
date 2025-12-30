@@ -297,11 +297,23 @@ async def use_potion(
                 detail="Stamina boost potion missing duration"
             )
 
-        # Clean up expired buffs first
-        db.query(ActiveBuff).filter(
+        # Clean up expired buffs first (and restore original values)
+        now_cleanup = datetime.utcnow()
+        expired_buffs_to_cleanup = db.query(ActiveBuff).filter(
             ActiveBuff.player_id == player.id,
-            ActiveBuff.expires_at <= datetime.utcnow()
-        ).delete()
+            ActiveBuff.expires_at <= now_cleanup
+        ).all()
+
+        # Restore original values before deleting
+        for expired_buff in expired_buffs_to_cleanup:
+            if expired_buff.buff_type == BuffType.STAMINA_BOOST and expired_buff.original_value is not None:
+                player.stamina_max = expired_buff.original_value
+                player.stamina = min(player.stamina, player.stamina_max)
+                player.updated_at = now_cleanup
+
+        # Delete expired buffs
+        for expired_buff in expired_buffs_to_cleanup:
+            db.delete(expired_buff)
         db.commit()
 
         # Check if player already has a stamina boost active
@@ -317,19 +329,32 @@ async def use_potion(
                 detail="You already have an active stamina boost!"
             )
 
+        # Store original stamina_max before boost
+        original_stamina_max = player.stamina_max
+
         # Create stamina boost buff
-        expires_at = datetime.utcnow() + timedelta(seconds=duration)
+        now = datetime.utcnow()
+        expires_at = now + timedelta(seconds=duration)
         buff = ActiveBuff(
             player_id=player.id,
             buff_type=BuffType.STAMINA_BOOST,
             effect_value=effect_value,
-            applied_at=datetime.utcnow(),
+            original_value=original_stamina_max,  # Store original to restore later
+            applied_at=now,
             expires_at=expires_at,
             source="potion",
             source_id=str(item_id)
         )
         db.add(buff)
         db.flush()
+
+        # Actually apply the stamina boost to player
+        player.stamina_max = effect_value
+        # Fill up stamina to the new max
+        player.stamina = effect_value
+        player.updated_at = now
+        db.commit()
+        db.refresh(player)
 
         buff_applied = ActiveBuffResponse(
             id=buff.id,
@@ -340,9 +365,16 @@ async def use_potion(
             source=buff.source
         )
 
+        logger.info("stamina_boost_applied",
+                   player_id=player.id,
+                   original_max=original_stamina_max,
+                   new_max=player.stamina_max,
+                   duration_seconds=duration,
+                   expires_at_utc=expires_at.isoformat())
+
         response_data["message"] = f"Stamina boosted to {effect_value} for {duration // 60} minutes!"
         response_data["stamina"] = player.stamina
-        response_data["stamina_max"] = effect_value
+        response_data["stamina_max"] = player.stamina_max
 
     elif potion_type == "ATTACK_BOOST":
         # Temporary attack multiplier
@@ -352,11 +384,23 @@ async def use_potion(
                 detail="Attack boost potion missing duration"
             )
 
-        # Clean up expired buffs first
-        db.query(ActiveBuff).filter(
+        # Clean up expired buffs first (and restore original values)
+        now_cleanup = datetime.utcnow()
+        expired_buffs_to_cleanup = db.query(ActiveBuff).filter(
             ActiveBuff.player_id == player.id,
-            ActiveBuff.expires_at <= datetime.utcnow()
-        ).delete()
+            ActiveBuff.expires_at <= now_cleanup
+        ).all()
+
+        # Restore original values before deleting
+        for expired_buff in expired_buffs_to_cleanup:
+            if expired_buff.buff_type == BuffType.STAMINA_BOOST and expired_buff.original_value is not None:
+                player.stamina_max = expired_buff.original_value
+                player.stamina = min(player.stamina, player.stamina_max)
+                player.updated_at = now_cleanup
+
+        # Delete expired buffs
+        for expired_buff in expired_buffs_to_cleanup:
+            db.delete(expired_buff)
         db.commit()
 
         # Check if player already has an attack boost active
@@ -442,12 +486,31 @@ async def cleanup_expired_buffs(
             detail="Player not found"
         )
 
-    # Delete expired buffs
+    # Get expired buffs before deleting them (to restore original values)
     now = datetime.utcnow()
-    deleted_count = db.query(ActiveBuff).filter(
+    expired_buffs = db.query(ActiveBuff).filter(
         ActiveBuff.player_id == player.id,
         ActiveBuff.expires_at <= now
-    ).delete()
+    ).all()
+
+    # Restore original values for stamina boost buffs
+    for buff in expired_buffs:
+        if buff.buff_type == BuffType.STAMINA_BOOST and buff.original_value is not None:
+            # Restore original stamina_max
+            player.stamina_max = buff.original_value
+            # Cap current stamina to the restored max
+            player.stamina = min(player.stamina, player.stamina_max)
+            player.updated_at = now
+            logger.info("stamina_boost_expired_restored",
+                       player_id=player.id,
+                       restored_max=player.stamina_max,
+                       buff_id=buff.id)
+
+    # Delete expired buffs
+    deleted_count = len(expired_buffs)
+    for buff in expired_buffs:
+        db.delete(buff)
+
     db.commit()
 
     return {

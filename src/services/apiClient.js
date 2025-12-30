@@ -370,6 +370,15 @@ class APIClient {
     }
 
     /**
+     * Clean up expired buffs
+     */
+    async cleanupExpiredBuffs() {
+        return await this.request('/api/inventory/cleanup-expired-buffs', {
+            method: 'POST'
+        });
+    }
+
+    /**
      * Get starter items (one-time only)
      */
     async getStarterItems() {

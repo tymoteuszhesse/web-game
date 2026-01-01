@@ -34,9 +34,6 @@ class ActiveBuffsDisplay {
             const player = PlayerData.get();
             const buffs = player.active_buffs || [];
 
-            console.log('[ActiveBuffs] Player data:', player);
-            console.log('[ActiveBuffs] Raw buffs:', buffs);
-
             this.buffs = buffs.map(buff => ({
                 id: buff.id,
                 type: buff.buff_type,
@@ -45,11 +42,9 @@ class ActiveBuffsDisplay {
                 source: buff.source
             }));
 
-            console.log('[ActiveBuffs] Processed buffs:', this.buffs);
-
             this.render();
         } catch (error) {
-            console.error('Failed to update buffs:', error);
+            console.error('[ActiveBuffs] Failed to update buffs:', error);
         }
     }
 
@@ -58,7 +53,6 @@ class ActiveBuffsDisplay {
      */
     render() {
         if (!this.container) {
-            console.warn('[ActiveBuffs] No container found for rendering');
             return;
         }
 
@@ -67,23 +61,25 @@ class ActiveBuffsDisplay {
 
         // Filter out expired buffs
         const now = new Date();
-        console.log('[ActiveBuffs] Current time:', now);
-        console.log('[ActiveBuffs] Buffs expiry times:', this.buffs.map(b => ({ id: b.id, type: b.type, expiresAt: b.expiresAt, expired: b.expiresAt <= now })));
         const activeBuffs = this.buffs.filter(buff => buff.expiresAt > now);
 
-        console.log('[ActiveBuffs] Active buffs after filtering:', activeBuffs);
-
         if (activeBuffs.length === 0) {
-            console.log('[ActiveBuffs] No active buffs to display');
             // Container will hide automatically with :not(:empty) CSS
             return;
         }
 
-        console.log('[ActiveBuffs] Rendering', activeBuffs.length, 'buffs');
-
-        // Render each buff
+        // Render each buff with time-based warnings
         activeBuffs.forEach(buff => {
             const buffEl = this.createBuffElement(buff);
+
+            // Add warning classes based on time remaining
+            const timeRemaining = Math.max(0, Math.floor((buff.expiresAt - now) / 1000));
+            if (timeRemaining <= 30) {
+                buffEl.classList.add('critical-time');
+            } else if (timeRemaining <= 60) {
+                buffEl.classList.add('low-time');
+            }
+
             this.container.appendChild(buffEl);
         });
     }

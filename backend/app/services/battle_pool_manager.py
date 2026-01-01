@@ -113,6 +113,13 @@ class BattlePoolManager:
             ).order_by(Battle.completed_at.desc()).offset(10).all()
 
             if completed_battles:
+                battle_ids_to_delete = [b.id for b in completed_battles]
+
+                # Delete associated battle_logs first to avoid foreign key constraint violation
+                from app.models.battle_log import BattleLog
+                db.query(BattleLog).filter(BattleLog.battle_id.in_(battle_ids_to_delete)).delete(synchronize_session=False)
+
+                # Now delete the battles
                 for battle in completed_battles:
                     db.delete(battle)
                 db.commit()

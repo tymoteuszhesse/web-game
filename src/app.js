@@ -118,12 +118,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 body: 'Challenge players to honorable combat<br><small>Fight for gold and glory!</small>',
                 badge: 'NEW',
                 onClick: () => router.navigate('pvp-arena')
-            },
-            {
-                title: 'Live Events',
-                body: 'The Goblin Feast of Shadows<br><small>Limited time event!</small>',
-                badge: 'LIVE',
-                onClick: () => NotificationSystem.show('Events coming soon!', 'info')
             }
         ];
 

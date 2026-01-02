@@ -66,8 +66,12 @@ class ActiveBuffsDisplay {
      */
     render() {
         if (!this.container) {
-            console.warn('[ActiveBuffs] Container not found!');
-            return;
+            console.error('[ActiveBuffs] Container not found! Searching for #active-buffs-container');
+            this.container = document.getElementById('active-buffs-container');
+            if (!this.container) {
+                console.error('[ActiveBuffs] Still cannot find container!');
+                return;
+            }
         }
 
         // Clear existing content
@@ -78,6 +82,15 @@ class ActiveBuffsDisplay {
         const activeBuffs = this.buffs.filter(buff => {
             const timeRemaining = Math.floor((buff.expiresAt - now) / 1000);
             return timeRemaining > 0; // Only show buffs with positive time remaining
+        });
+
+        console.log('[ActiveBuffs] Rendering:', {
+            totalBuffs: this.buffs.length,
+            activeBuffs: activeBuffs.length,
+            buffsData: activeBuffs.map(b => ({
+                type: b.type,
+                timeRemaining: Math.floor((b.expiresAt - now) / 1000)
+            }))
         });
 
         if (activeBuffs.length === 0) {
@@ -98,7 +111,10 @@ class ActiveBuffsDisplay {
             }
 
             this.container.appendChild(buffEl);
+            console.log('[ActiveBuffs] Appended buff element:', buff.type);
         });
+
+        console.log('[ActiveBuffs] Render complete, container children:', this.container.children.length);
     }
 
     /**

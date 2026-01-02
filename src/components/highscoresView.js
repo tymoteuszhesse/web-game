@@ -33,8 +33,9 @@ async function createHighscoresView() {
 
     // Fetch highscores data
     try {
-        const response = await apiClient.fetch('/api/highscores');
-        const data = await response.json();
+        const data = await apiClient.request('/api/highscores', {
+            method: 'GET'
+        });
 
         // Remove loading
         loadingEl.remove();

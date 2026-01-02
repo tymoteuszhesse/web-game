@@ -53,6 +53,7 @@ class ActiveBuffsDisplay {
      */
     render() {
         if (!this.container) {
+            console.warn('[ActiveBuffs] Container not found!');
             return;
         }
 
@@ -61,12 +62,32 @@ class ActiveBuffsDisplay {
 
         // Filter out expired buffs
         const now = new Date();
+
+        // DEBUG: Log buff expiry check
+        if (this.buffs.length > 0) {
+            console.log('[ActiveBuffs] Checking buffs:', {
+                buffCount: this.buffs.length,
+                currentTime: now.toISOString(),
+                buffs: this.buffs.map(b => ({
+                    type: b.type,
+                    expiresAt: b.expiresAt.toISOString(),
+                    timeRemaining: Math.floor((b.expiresAt - now) / 1000),
+                    isExpired: b.expiresAt <= now
+                }))
+            });
+        }
+
         const activeBuffs = this.buffs.filter(buff => buff.expiresAt > now);
 
         if (activeBuffs.length === 0) {
+            if (this.buffs.length > 0) {
+                console.warn('[ActiveBuffs] All buffs filtered as expired!');
+            }
             // Container will hide automatically with :not(:empty) CSS
             return;
         }
+
+        console.log('[ActiveBuffs] Rendering', activeBuffs.length, 'active buffs');
 
         // Render each buff with time-based warnings
         activeBuffs.forEach(buff => {

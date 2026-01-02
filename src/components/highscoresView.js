@@ -7,6 +7,9 @@ async function createHighscoresView() {
     const container = document.createElement('div');
     container.className = 'highscores-container';
 
+    // Back button
+    container.appendChild(createBackButton());
+
     // Header with dramatic title
     const header = document.createElement('div');
     header.className = 'highscores-header';

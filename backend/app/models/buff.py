@@ -25,8 +25,8 @@ class ActiveBuff(Base):
     original_value = Column(Integer, nullable=True)  # Original value to restore when buff expires (for stamina_max, etc.)
 
     # Timing
-    applied_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    expires_at = Column(DateTime, nullable=False)
+    applied_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
 
     # Source
     source = Column(String, nullable=False)  # "potion", "skill", "item", etc.

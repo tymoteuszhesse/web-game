@@ -79,6 +79,18 @@ class ActiveBuffsDisplay {
 
         // Filter out expired buffs
         const now = new Date();
+
+        // Debug: Log all buffs before filtering
+        console.log('[ActiveBuffs] All buffs before filtering:', this.buffs.map(b => ({
+            type: b.type,
+            expiresAt: b.expiresAt.toISOString(),
+            expiresAtTime: b.expiresAt.getTime(),
+            nowTime: now.getTime(),
+            nowISO: now.toISOString(),
+            difference: b.expiresAt.getTime() - now.getTime(),
+            timeRemaining: Math.floor((b.expiresAt - now) / 1000)
+        })));
+
         const activeBuffs = this.buffs.filter(buff => {
             const timeRemaining = Math.floor((buff.expiresAt - now) / 1000);
             return timeRemaining > 0; // Only show buffs with positive time remaining

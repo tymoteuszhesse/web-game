@@ -37,18 +37,44 @@ async def get_player_profile(
     # Regenerate stamina if needed
     _regenerate_stamina(player, db)
 
-    # Filter out expired buffs
+    # Filter out expired buffs and restore original values
     now = datetime.now(timezone.utc)
     logger.info("active_buffs_before_filter", player_id=player.id, buffs_count=len(player.active_buffs), buffs=[{"id": b.id, "type": b.buff_type, "expires_at": b.expires_at} for b in player.active_buffs])
 
-    # Handle timezone-naive datetimes from existing database records
+    # Handle timezone-naive datetimes and restore original values for expired buffs
+    from app.models.buff import ActiveBuff, BuffType
+
     active_buffs = []
+    expired_buffs = []
+
     for buff in player.active_buffs:
         expires_at = buff.expires_at
         if expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
+
         if expires_at > now:
             active_buffs.append(buff)
+        else:
+            expired_buffs.append(buff)
+
+    # Restore original values for expired stamina boost buffs
+    for buff in expired_buffs:
+        if buff.buff_type == BuffType.STAMINA_BOOST and buff.original_value is not None:
+            player.stamina_max = buff.original_value
+            player.stamina = min(player.stamina, player.stamina_max)
+            player.updated_at = now
+            logger.info("stamina_boost_expired_restored",
+                       player_id=player.id,
+                       restored_max=player.stamina_max,
+                       buff_id=buff.id)
+            db.commit()
+        # Delete expired buff
+        db.delete(buff)
+
+    if expired_buffs:
+        db.commit()
+        db.refresh(player)
+
     player.active_buffs = active_buffs
 
     logger.info("active_buffs_after_filter", player_id=player.id, buffs_count=len(player.active_buffs), now=now)

@@ -34,13 +34,26 @@ class ActiveBuffsDisplay {
             const player = PlayerData.get();
             const buffs = player.active_buffs || [];
 
-            this.buffs = buffs.map(buff => ({
-                id: buff.id,
-                type: buff.buff_type,
-                value: buff.effect_value,
-                expiresAt: new Date(buff.expires_at),
-                source: buff.source
-            }));
+            // Parse and validate buff timestamps
+            this.buffs = buffs
+                .map(buff => {
+                    const expiresAt = new Date(buff.expires_at);
+
+                    // Validate that the date is valid and in the future
+                    if (isNaN(expiresAt.getTime())) {
+                        console.warn('[ActiveBuffs] Invalid timestamp for buff:', buff);
+                        return null;
+                    }
+
+                    return {
+                        id: buff.id,
+                        type: buff.buff_type,
+                        value: buff.effect_value,
+                        expiresAt: expiresAt,
+                        source: buff.source
+                    };
+                })
+                .filter(buff => buff !== null); // Remove invalid buffs
 
             this.render();
         } catch (error) {
@@ -62,32 +75,15 @@ class ActiveBuffsDisplay {
 
         // Filter out expired buffs
         const now = new Date();
-
-        // DEBUG: Log buff expiry check
-        if (this.buffs.length > 0) {
-            console.log('[ActiveBuffs] Checking buffs:', {
-                buffCount: this.buffs.length,
-                currentTime: now.toISOString(),
-                buffs: this.buffs.map(b => ({
-                    type: b.type,
-                    expiresAt: b.expiresAt.toISOString(),
-                    timeRemaining: Math.floor((b.expiresAt - now) / 1000),
-                    isExpired: b.expiresAt <= now
-                }))
-            });
-        }
-
-        const activeBuffs = this.buffs.filter(buff => buff.expiresAt > now);
+        const activeBuffs = this.buffs.filter(buff => {
+            const timeRemaining = Math.floor((buff.expiresAt - now) / 1000);
+            return timeRemaining > 0; // Only show buffs with positive time remaining
+        });
 
         if (activeBuffs.length === 0) {
-            if (this.buffs.length > 0) {
-                console.warn('[ActiveBuffs] All buffs filtered as expired!');
-            }
             // Container will hide automatically with :not(:empty) CSS
             return;
         }
-
-        console.log('[ActiveBuffs] Rendering', activeBuffs.length, 'active buffs');
 
         // Render each buff with time-based warnings
         activeBuffs.forEach(buff => {

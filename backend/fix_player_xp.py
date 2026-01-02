@@ -4,7 +4,14 @@ Fix corrupted player XP values in database.
 The old buggy code was storing progress within current level instead of total lifetime XP.
 This script recalculates the correct total XP based on player's current level and exp.
 """
+import sys
+import os
+
+# Add backend directory to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from app.db.database import SessionLocal
+from app.models.buff import ActiveBuff  # Import first to avoid circular dependency
 from app.models.player import Player
 from app.services.progression_service import ProgressionService
 import structlog

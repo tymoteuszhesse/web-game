@@ -174,6 +174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const menuItems = [
             { icon: ColoredThemeIcons.render('battle'), title: 'Battles', route: 'battles', description: 'Epic multiplayer encounters', highlight: true },
             { icon: '🍺', title: 'The Tavern', route: 'chat', description: 'Chat with other players', highlight: false },
+            { icon: '👑', title: 'Highscores', route: 'highscores', description: 'Hall of Legends', highlight: false },
             { icon: ColoredThemeIcons.render('inventory'), title: 'Inventory', route: 'inventory', description: 'Manage equipment & items' },
             { icon: ColoredThemeIcons.render('pets'), title: 'Companions', route: 'pets', description: 'Your loyal battle pets' },
             { icon: ColoredThemeIcons.render('stats'), title: 'Character', route: 'stats', description: 'Stats & progression' },
@@ -217,7 +218,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (item.route === 'inventory' || item.route === 'stats' ||
                     item.route === 'achievements' || item.route === 'battles' ||
                     item.route === 'merchant' || item.route === 'shop' ||
-                    item.route === 'pets' || item.route === 'auth' || item.route === 'chat') {
+                    item.route === 'pets' || item.route === 'auth' || item.route === 'chat' ||
+                    item.route === 'highscores') {
                     router.navigate(item.route);
                 } else {
                     NotificationSystem.show(`${item.title} coming soon!`, 'info');
@@ -404,6 +406,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Real-time PVP Battle route
     router.register('pvp-battle/:battleId/:duelId', async (params) => {
         return await createRealTimePvpBattleView(params.battleId, params.duelId);
+    });
+
+    // Highscores route
+    router.register('highscores', async () => {
+        return await createHighscoresView();
     });
 
     // Achievements route (placeholder)

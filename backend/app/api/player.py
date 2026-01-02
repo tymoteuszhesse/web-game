@@ -40,7 +40,17 @@ async def get_player_profile(
     # Filter out expired buffs
     now = datetime.now(timezone.utc)
     logger.info("active_buffs_before_filter", player_id=player.id, buffs_count=len(player.active_buffs), buffs=[{"id": b.id, "type": b.buff_type, "expires_at": b.expires_at} for b in player.active_buffs])
-    player.active_buffs = [buff for buff in player.active_buffs if buff.expires_at > now]
+
+    # Handle timezone-naive datetimes from existing database records
+    active_buffs = []
+    for buff in player.active_buffs:
+        expires_at = buff.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at > now:
+            active_buffs.append(buff)
+    player.active_buffs = active_buffs
+
     logger.info("active_buffs_after_filter", player_id=player.id, buffs_count=len(player.active_buffs), now=now)
 
     return player
@@ -216,7 +226,13 @@ async def debug_set_level(
 def _regenerate_stamina(player: Player, db: Session):
     """Helper function to regenerate stamina based on time elapsed"""
     now = datetime.now(timezone.utc)
-    time_diff = (now - player.last_stamina_regen).total_seconds()
+
+    # Handle timezone-naive datetimes from existing database records
+    last_regen = player.last_stamina_regen
+    if last_regen.tzinfo is None:
+        last_regen = last_regen.replace(tzinfo=timezone.utc)
+
+    time_diff = (now - last_regen).total_seconds()
 
     # Calculate how many regen intervals have passed
     intervals = int(time_diff / settings.STAMINA_REGEN_INTERVAL)

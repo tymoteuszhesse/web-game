@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.db.database import get_db
 from app.models.user import User
 from app.models.player import Player
@@ -298,7 +298,7 @@ async def use_potion(
             )
 
         # Clean up expired buffs first (and restore original values)
-        now_cleanup = datetime.utcnow()
+        now_cleanup = datetime.now(timezone.utc)
         expired_buffs_to_cleanup = db.query(ActiveBuff).filter(
             ActiveBuff.player_id == player.id,
             ActiveBuff.expires_at <= now_cleanup
@@ -320,7 +320,7 @@ async def use_potion(
         existing_boost = db.query(ActiveBuff).filter(
             ActiveBuff.player_id == player.id,
             ActiveBuff.buff_type == BuffType.STAMINA_BOOST,
-            ActiveBuff.expires_at > datetime.utcnow()
+            ActiveBuff.expires_at > datetime.now(timezone.utc)
         ).first()
 
         if existing_boost:
@@ -333,7 +333,7 @@ async def use_potion(
         original_stamina_max = player.stamina_max
 
         # Create stamina boost buff
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires_at = now + timedelta(seconds=duration)
         buff = ActiveBuff(
             player_id=player.id,
@@ -385,7 +385,7 @@ async def use_potion(
             )
 
         # Clean up expired buffs first (and restore original values)
-        now_cleanup = datetime.utcnow()
+        now_cleanup = datetime.now(timezone.utc)
         expired_buffs_to_cleanup = db.query(ActiveBuff).filter(
             ActiveBuff.player_id == player.id,
             ActiveBuff.expires_at <= now_cleanup
@@ -407,7 +407,7 @@ async def use_potion(
         existing_boost = db.query(ActiveBuff).filter(
             ActiveBuff.player_id == player.id,
             ActiveBuff.buff_type == BuffType.ATTACK_BOOST,
-            ActiveBuff.expires_at > datetime.utcnow()
+            ActiveBuff.expires_at > datetime.now(timezone.utc)
         ).first()
 
         if existing_boost:
@@ -417,12 +417,12 @@ async def use_potion(
             )
 
         # Create attack boost buff
-        expires_at = datetime.utcnow() + timedelta(seconds=duration)
+        expires_at = datetime.now(timezone.utc) + timedelta(seconds=duration)
         buff = ActiveBuff(
             player_id=player.id,
             buff_type=BuffType.ATTACK_BOOST,
             effect_value=effect_value,
-            applied_at=datetime.utcnow(),
+            applied_at=datetime.now(timezone.utc),
             expires_at=expires_at,
             source="potion",
             source_id=str(item_id)
@@ -487,7 +487,7 @@ async def cleanup_expired_buffs(
         )
 
     # Get expired buffs before deleting them (to restore original values)
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     expired_buffs = db.query(ActiveBuff).filter(
         ActiveBuff.player_id == player.id,
         ActiveBuff.expires_at <= now

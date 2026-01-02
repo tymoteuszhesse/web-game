@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from app.db.database import Base
 import enum
 
@@ -25,7 +25,7 @@ class ActiveBuff(Base):
     original_value = Column(Integer, nullable=True)  # Original value to restore when buff expires (for stamina_max, etc.)
 
     # Timing
-    applied_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    applied_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     expires_at = Column(DateTime, nullable=False)
 
     # Source
@@ -37,4 +37,4 @@ class ActiveBuff(Base):
 
     def is_expired(self) -> bool:
         """Check if buff has expired"""
-        return datetime.utcnow() >= self.expires_at
+        return datetime.now(timezone.utc) >= self.expires_at

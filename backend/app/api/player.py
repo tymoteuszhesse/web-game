@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
-from datetime import datetime
+from datetime import datetime, timezone
 from app.db.database import get_db
 from app.models.user import User
 from app.models.player import Player
@@ -38,7 +38,7 @@ async def get_player_profile(
     _regenerate_stamina(player, db)
 
     # Filter out expired buffs
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     logger.info("active_buffs_before_filter", player_id=player.id, buffs_count=len(player.active_buffs), buffs=[{"id": b.id, "type": b.buff_type, "expires_at": b.expires_at} for b in player.active_buffs])
     player.active_buffs = [buff for buff in player.active_buffs if buff.expires_at > now]
     logger.info("active_buffs_after_filter", player_id=player.id, buffs_count=len(player.active_buffs), now=now)
@@ -80,7 +80,7 @@ async def allocate_stats(
     if allocation.max_stamina > 0:
         player.stamina = player.stamina_max
 
-    player.updated_at = datetime.utcnow()
+    player.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(player)
 
@@ -203,7 +203,7 @@ async def debug_set_level(
     player.level = level
     player.exp = 0
     player.exp_max = ProgressionService.calculate_xp_for_level(level + 1)
-    player.updated_at = datetime.utcnow()
+    player.updated_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(player)
@@ -215,7 +215,7 @@ async def debug_set_level(
 
 def _regenerate_stamina(player: Player, db: Session):
     """Helper function to regenerate stamina based on time elapsed"""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     time_diff = (now - player.last_stamina_regen).total_seconds()
 
     # Calculate how many regen intervals have passed

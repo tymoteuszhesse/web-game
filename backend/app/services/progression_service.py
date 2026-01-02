@@ -150,8 +150,7 @@ class ProgressionService:
             player.level = new_level
             player.unspent_stat_points += stat_points_earned
 
-            # Update exp to show progress within current level (not total XP)
-            player.exp = xp_progress
+            # Update exp_max for UI (player.exp already contains total XP)
             player.exp_max = xp_needed
 
             # Refill stamina on level up
@@ -168,8 +167,7 @@ class ProgressionService:
                 source=source
             )
         else:
-            # Update exp to show progress within current level (not total XP)
-            player.exp = xp_progress
+            # Update exp_max for UI (player.exp already contains total XP)
             player.exp_max = xp_needed
 
         # Commit changes

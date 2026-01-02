@@ -53,6 +53,17 @@ async def get_player_profile(
 
     logger.info("active_buffs_after_filter", player_id=player.id, buffs_count=len(player.active_buffs), now=now)
 
+    # Calculate exp progress within current level for UI display
+    # player.exp stores total lifetime XP, but frontend needs progress within current level
+    _, xp_in_current_level, xp_for_next_level = ProgressionService.calculate_level_from_xp(player.exp)
+
+    # Store total XP for internal use
+    total_xp = player.exp
+
+    # Override exp with progress in current level for frontend display
+    player.exp = xp_in_current_level
+    player.exp_max = xp_for_next_level
+
     return player
 
 

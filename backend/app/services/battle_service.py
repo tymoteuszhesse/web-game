@@ -4,7 +4,7 @@ Handles all battle logic including combat, enemies, and rewards
 """
 from typing import Dict, List, Tuple, Optional
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone
 import structlog
 import random
 
@@ -461,7 +461,7 @@ class BattleService:
         # Start battle if first player
         if battle.status == BattleStatus.WAITING:
             battle.status = BattleStatus.IN_PROGRESS
-            battle.started_at = datetime.utcnow()
+            battle.started_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(participant)
@@ -663,7 +663,7 @@ class BattleService:
         enemy_defeated = enemy.hp_current <= 0
         if enemy_defeated:
             enemy.is_defeated = True
-            enemy.defeated_at = datetime.utcnow()
+            enemy.defeated_at = datetime.now(timezone.utc)
             # Flush to ensure the is_defeated flag is available for the next query
             db.flush()
 
@@ -675,7 +675,7 @@ class BattleService:
 
         if all_defeated:
             battle.status = BattleStatus.COMPLETED
-            battle.completed_at = datetime.utcnow()
+            battle.completed_at = datetime.now(timezone.utc)
 
         # Check for boss phase transition (for boss raids)
         phase_transition = None
@@ -787,7 +787,7 @@ class BattleService:
 
         # Mark as claimed
         participant.has_claimed_loot = True
-        participant.claimed_at = datetime.utcnow()
+        participant.claimed_at = datetime.now(timezone.utc)
         participant.rewards = {
             "gold": gold_reward,
             "xp": xp_reward,
@@ -1048,7 +1048,12 @@ class BattleService:
             return False, 0
 
         # Calculate time since death
-        time_since_death = (datetime.utcnow() - participant.death_timestamp).total_seconds()
+        now = datetime.now(timezone.utc)
+        death_time = participant.death_timestamp
+        if death_time.tzinfo is None:
+            death_time = death_time.replace(tzinfo=timezone.utc)
+
+        time_since_death = (now - death_time).total_seconds()
         cooldown_remaining = max(0, BattleService.DEATH_COOLDOWN_SECONDS - time_since_death)
 
         if cooldown_remaining <= 0:

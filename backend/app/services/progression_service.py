@@ -171,8 +171,18 @@ class ProgressionService:
             player.exp_max = xp_needed
 
         # Commit changes
-        db.commit()
-        db.refresh(player)
+        try:
+            db.commit()
+            db.refresh(player)
+        except Exception as e:
+            logger.error(
+                "award_xp_commit_failed",
+                player_id=player.id,
+                error=str(e),
+                error_type=type(e).__name__
+            )
+            db.rollback()
+            raise
 
         return {
             "leveled_up": leveled_up,

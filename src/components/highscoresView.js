@@ -170,15 +170,15 @@ function createLeaderboardRow(entry, type) {
             </div>
             <div class="stat-secondary">
                 <span class="stat-label">ATK</span>
-                <span class="stat-value">${entry.base_attack}</span>
+                <span class="stat-value">${entry.total_attack}</span>
             </div>
             <div class="stat-secondary">
                 <span class="stat-label">DEF</span>
-                <span class="stat-value">${entry.base_defense}</span>
+                <span class="stat-value">${entry.total_defense}</span>
             </div>
             <div class="stat-secondary">
                 <span class="stat-label">HP</span>
-                <span class="stat-value">${entry.base_hp}</span>
+                <span class="stat-value">${entry.total_hp}</span>
             </div>
         `;
     }

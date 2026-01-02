@@ -18,6 +18,50 @@ logger = structlog.get_logger()
 router = APIRouter()
 
 
+def get_player_equipment_bonuses(player: Player, db: Session) -> dict:
+    """
+    Calculate total equipment bonuses for a player
+    Returns dict with attack_bonus, defense_bonus, hp_bonus
+    """
+    total_attack = 0
+    total_defense = 0
+    total_hp = 0
+
+    # Get all equipment sets for this player
+    equipment_sets = db.query(EquipmentSet).filter(
+        EquipmentSet.player_id == player.id
+    ).all()
+
+    # Track unique item IDs to avoid counting duplicates across sets
+    counted_item_ids = set()
+
+    for eq_set in equipment_sets:
+        # Get all equipped items in this set
+        item_slots = [
+            eq_set.weapon_id, eq_set.helmet_id, eq_set.armor_id,
+            eq_set.boots_id, eq_set.gloves_id, eq_set.ring_id,
+            eq_set.ring2_id, eq_set.amulet_id
+        ]
+
+        for item_id in item_slots:
+            if item_id and item_id not in counted_item_ids:
+                item = db.query(InventoryItem).filter(
+                    InventoryItem.id == item_id
+                ).first()
+
+                if item:
+                    total_attack += item.attack_bonus
+                    total_defense += item.defense_bonus
+                    total_hp += item.hp_bonus
+                    counted_item_ids.add(item_id)
+
+    return {
+        'attack_bonus': total_attack,
+        'defense_bonus': total_defense,
+        'hp_bonus': total_hp
+    }
+
+
 def calculate_item_score(player: Player, db: Session) -> int:
     """
     Calculate total item power score for a player
@@ -98,6 +142,7 @@ async def get_highscores(db: Session = Depends(get_db)):
         level_leaderboard = []
         for rank, player in enumerate(top_by_level, start=1):
             item_score = calculate_item_score(player, db)
+            equipment_bonuses = get_player_equipment_bonuses(player, db)
             level_leaderboard.append(HighscoreEntry(
                 rank=rank,
                 player_id=player.id,
@@ -106,15 +151,16 @@ async def get_highscores(db: Session = Depends(get_db)):
                 exp=player.exp,
                 item_score=item_score,
                 gold=player.gold,
-                base_attack=player.base_attack,
-                base_defense=player.base_defense,
-                base_hp=player.base_hp
+                total_attack=player.base_attack + equipment_bonuses['attack_bonus'],
+                total_defense=player.base_defense + equipment_bonuses['defense_bonus'],
+                total_hp=player.base_hp + equipment_bonuses['hp_bonus']
             ))
 
         # Format item score leaderboard
         item_leaderboard = []
         for rank, entry in enumerate(top_by_items, start=1):
             player = entry['player']
+            equipment_bonuses = get_player_equipment_bonuses(player, db)
             item_leaderboard.append(HighscoreEntry(
                 rank=rank,
                 player_id=player.id,
@@ -123,9 +169,9 @@ async def get_highscores(db: Session = Depends(get_db)):
                 exp=player.exp,
                 item_score=entry['item_score'],
                 gold=player.gold,
-                base_attack=player.base_attack,
-                base_defense=player.base_defense,
-                base_hp=player.base_hp
+                total_attack=player.base_attack + equipment_bonuses['attack_bonus'],
+                total_defense=player.base_defense + equipment_bonuses['defense_bonus'],
+                total_hp=player.base_hp + equipment_bonuses['hp_bonus']
             ))
 
         logger.info(

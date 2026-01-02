@@ -15,9 +15,9 @@ class HighscoreEntry(BaseModel):
     exp: int
     item_score: int
     gold: int
-    base_attack: int
-    base_defense: int
-    base_hp: int
+    total_attack: int
+    total_defense: int
+    total_hp: int
 
     class Config:
         from_attributes = True

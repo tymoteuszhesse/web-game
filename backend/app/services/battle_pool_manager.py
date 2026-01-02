@@ -35,6 +35,25 @@ class BattlePoolManager:
             existing_difficulties = [b.difficulty for b in existing_battles]
             current_count = len(existing_battles)
 
+            # Remove excess battles if we have too many
+            if current_count > STANDARD_BATTLE_POOL_SIZE:
+                # Sort by created_at and keep only the newest ones
+                excess_battles = sorted(existing_battles, key=lambda b: b.created_at)[:(current_count - STANDARD_BATTLE_POOL_SIZE)]
+                for battle in excess_battles:
+                    db.delete(battle)
+                db.commit()
+                logger.info("removed_excess_battles",
+                           removed_count=len(excess_battles),
+                           new_count=STANDARD_BATTLE_POOL_SIZE)
+
+                # Refresh the list
+                existing_battles = db.query(Battle).filter(
+                    Battle.battle_type == BattleType.STANDARD,
+                    Battle.status == BattleStatus.WAITING
+                ).all()
+                existing_difficulties = [b.difficulty for b in existing_battles]
+                current_count = len(existing_battles)
+
             # Count available boss raids
             boss_count = db.query(Battle).filter(
                 Battle.battle_type == BattleType.BOSS_RAID,

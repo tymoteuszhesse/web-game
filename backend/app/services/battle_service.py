@@ -477,7 +477,7 @@ class BattleService:
 
     @staticmethod
     def calculate_player_attack_power(db: Session, player: Player) -> int:
-        """Calculate total attack power including equipment and pets"""
+        """Calculate total attack power including equipment, pets, and buffs"""
         total_attack = player.base_attack
 
         # Add equipment bonuses from ATTACK set (players use attack set in battles)
@@ -499,6 +499,25 @@ class BattleService:
 
         # TODO: Add pet bonuses from active pet set
         # Pets will add 20-100+ attack depending on level/focus
+
+        # Apply attack boost buff multiplier
+        from app.models.buff import ActiveBuff, BuffType
+        attack_boost = db.query(ActiveBuff).filter(
+            ActiveBuff.player_id == player.id,
+            ActiveBuff.buff_type == BuffType.ATTACK_BOOST,
+            ActiveBuff.expires_at > datetime.now(timezone.utc)
+        ).first()
+
+        if attack_boost:
+            attack_multiplier = attack_boost.effect_value
+            total_attack = int(total_attack * attack_multiplier)
+            logger.info(
+                "attack_boost_applied",
+                player_id=player.id,
+                base_total=total_attack // attack_multiplier,
+                multiplier=attack_multiplier,
+                boosted_attack=total_attack
+            )
 
         return total_attack
 
@@ -525,6 +544,25 @@ class BattleService:
             )
 
         # TODO: Add pet bonuses from active pet set
+
+        # Apply defense boost buff multiplier
+        from app.models.buff import ActiveBuff, BuffType
+        defense_boost = db.query(ActiveBuff).filter(
+            ActiveBuff.player_id == player.id,
+            ActiveBuff.buff_type == BuffType.DEFENSE_BOOST,
+            ActiveBuff.expires_at > datetime.now(timezone.utc)
+        ).first()
+
+        if defense_boost:
+            defense_multiplier = defense_boost.effect_value
+            total_defense = int(total_defense * defense_multiplier)
+            logger.info(
+                "defense_boost_applied",
+                player_id=player.id,
+                base_total=total_defense // defense_multiplier,
+                multiplier=defense_multiplier,
+                boosted_defense=total_defense
+            )
 
         return total_defense
 
